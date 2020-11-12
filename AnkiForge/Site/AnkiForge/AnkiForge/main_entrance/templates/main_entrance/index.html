@@ -1,0 +1,27 @@
+{% extends 'main_entrance/base.html' %}
+
+{% block content %}
+
+{% if user.is_authenticated %}
+
+    <div class='container'>
+        <div class='jumbotron'>
+            <h1>Welcome back {{ user.username|capfirst }}.</h1>
+            <hr class = "my-4">
+            <p class="lead"> This is a view that will be seen when you are signed in </p>
+        </div>
+    </div>
+
+{% else %}
+    
+    <div class='container'>
+        <div class='jumbotron'>
+            <h1>The splash page </h1>
+            <hr class = "my-4">
+            <p class="lead"> This is a view that will be seen when you are not yet signed in. </p>
+        </div>
+    </div>
+
+{% endif %}
+
+{% endblock  %}

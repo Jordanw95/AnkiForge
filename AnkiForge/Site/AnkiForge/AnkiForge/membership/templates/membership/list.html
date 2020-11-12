@@ -1,0 +1,82 @@
+{% extends 'main_entrance/base.html' %}
+
+{% block content %}
+{% comment %} SIDE MENU {% endcomment %}
+<div class="row">
+    <div class="col-2">    
+        {% include 'membership/base.html' %}
+    </div>
+    <div class = "col">    
+    {% comment %} All other content {% endcomment %}
+        <div class="container">
+            <div class="jumbotron">
+                <div>
+                    <h1 class ="text-center">Choose a plan according to your needs</h1>
+                </div>
+                <hr>
+                <div class="row">
+                    {% for object in memberships.paid_memberships %}
+                    <div class="col-sm-4 col-md-4">
+                        <div class="card text-center" style="width: 18rem;">
+            <!-- <img class="card-img-top " src="{{ object.image.url }}" alt="Card image cap"> -->
+                            <div class="card-body">
+                                <h5 class="card-title text-center">{{ object.get_membership_type_display }}</h5>
+                                <p class="card-text text-center">With this membership you will receive {{ object.points_awarded }}
+                                points per month. This equates to roughly xxx cards based on the example card below </p>
+                            </div>
+                            <ul class="list-group list-group-flush">
+                                <li class="list-group-item text-center"> £{{ object.price }}<small>/month</small></li>
+                            </ul>
+                            <div class="card-body">
+                                <form method="POST" action="{% url 'membership:select_membership' %}">
+                                    {% csrf_token %}
+                                    {% if object.membership_type != memberships.user_membership.membership %}
+                                    <button class="btn btn-warning">Change</button>
+                                    {% else %}
+                                    <small>Your current plan</small>
+                                    {% endif %}
+                                    <input type="hidden" name="membership_type" value="{{ object.membership_type }}">
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                <br>
+                <div class= "row">
+                    <div class = "col">
+                        <div class="card text-center">
+                            {% comment %} <div class="card-header">
+                                No commitment
+                            </div> {% endcomment %}
+                            <div class="card-body">
+                                <h5 class="card-title">{{ memberships.free_membership.get_membership_type_display }}</h5>
+                                <hr>
+                                <p class="card-text">No commitment. Top up points as and when you need them, using the <a href="#">top up feature.</a> 
+                                With this method you will not have access to Kindle easy add and you will pay for points at a higher rate.</p>
+                                <br>
+                                {% comment %} THIS STATEMENT IS NOT WORKING !!! {% endcomment %}
+                                {% if  memberships.user_membership.membership != memberships.free_membership.membership_type %}
+                                <div class="card-footer text-muted">
+                                This is your current membership
+                                {% else %}
+                                <a href="#" class="btn btn-primary">Downgrade</a>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>     
+                    </div>
+                </div>
+            </div>
+            <br>
+        </div>
+            <div class = "jumbotron text-center">
+                <h1 class="text-center"> Example card</h1>
+                <hr>
+            </div>
+        
+        {% comment %} This is the end of the col for colunm {% endcomment %}
+    </div>
+</div>
+{% endblock content %}
+        
