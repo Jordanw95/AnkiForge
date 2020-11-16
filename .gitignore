@@ -1,2 +1,6 @@
-AnkiForge/Site/AnkiForge/AnkiForge/AnkiForge/__pycache__/secretsettings.cpython-38.pyc
 AnkiForge/Site/AnkiForge/AnkiForge/AnkiForge/secretsettings.py
+
+AnkiForge/env
+*.DS_Store
+*.idea
+*.pyc
