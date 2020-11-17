@@ -39,8 +39,8 @@
                     <li class="nav-item {% if request.path == url %}active{% endif %}">
                         <a class="nav-link" href="{{ url }}">Account</a>
                     </li>
-                    {% url 'main_entrance:howitworks' as url %}
-                    <li class="nav-item ">
+                    {% url 'decks:decks_index' as url %}
+                    <li class="nav-item {% if request.path == url %}active{% endif %}">
                         <a class="nav-link" href="{{ url }}">Decks</a>
                     </li>
                     {% url 'main_entrance:howitworks' as url %}

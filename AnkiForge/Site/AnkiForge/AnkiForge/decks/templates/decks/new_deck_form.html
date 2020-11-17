@@ -1,0 +1,21 @@
+{% extends 'main_entrance/base.html' %}
+{% load crispy_forms_tags %}
+{% block content %}
+{% comment %} SIDE MENU {% endcomment %}
+<div class="row">
+    <div class="col-2">    
+        {% include 'decks/base.html' %}
+    </div>
+    <div class="col">
+        {% comment %} All page content here {% endcomment %}
+        <div class = "jumbotron">
+            <h1 class ="text-center">Create a New Deck</h1>
+            <p class ="lead text-center"> Fill in the information below </p>
+            <hr>
+            {% crispy form %}
+        </div>
+
+        {% comment %} This is the end of content {% endcomment %}
+    </div>
+</div>
+{% endblock content %}

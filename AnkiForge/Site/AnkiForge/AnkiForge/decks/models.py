@@ -1,6 +1,8 @@
 from django.db import models
 from django.conf import settings
 from django.utils import timezone
+import random
+
 
 class CardModels(models.Model):
     CODE = 1041609445
@@ -44,7 +46,8 @@ class CardModels(models.Model):
                                 'fields' : FIELDS,
                                 'templates' : TEMPLATES
                                 })
-
+    def __str__(self):
+        return self.model_name
 class UserDecks(models.Model):
     NATIVE_LANG_CHOICES = (
         ('en', 'English'),
@@ -96,9 +99,13 @@ class UserDecks(models.Model):
         'templates' : TEMPLATES
         }
 
+    def make_random_number():
+        return random.randint(1000000000, 9999999999)
 
     user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name = 'user_decks', on_delete=models.CASCADE)
-    deck_id = models.PositiveBigIntegerField(blank=True)
+    deck_id = models.PositiveBigIntegerField(blank=True, default = make_random_number)
+    ankiforge_deck_name = models.CharField(max_length=50)
+    anki_deck_name = models.CharField(max_length=50)
     native_lang = models.CharField(
         choices = NATIVE_LANG_CHOICES, default = 'en',
         max_length = 50
@@ -112,6 +119,10 @@ class UserDecks(models.Model):
     model_code = models.ForeignKey(CardModels, related_name = 'model_code', on_delete=models.SET_DEFAULT,
     default=DEFAULT_MODEL)
 
+
+    def __str__(self):
+        return self.ankiforge_deck_name
+
 class ArchivedCards(models.Model):
     original_quote = models.CharField(max_length=240)
     original_language = models.CharField(max_length=50)
@@ -120,9 +131,18 @@ class ArchivedCards(models.Model):
     audio_file_path = models.TextField(max_length=1000, default ="")
     image_file_path= models.TextField(max_length=1000, default ="")
     
+    def __str__(self) :
+        return self.original_quote
 
 
 class IncomingCards(models.Model):
+    
+    class ReadyForProcess(models.Manager):
+        def get_queryset(self):
+            return super().get_queryset().filter(ready_for_archive =True)
+
+
+
     user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name = 'user_cards', on_delete=models.CASCADE)
     deck = models.ForeignKey(UserDecks, related_name = 'target_deck', on_delete=models.CASCADE)
     cost = models.PositiveIntegerField()
@@ -132,7 +152,11 @@ class IncomingCards(models.Model):
     quote_received_date = models.DateTimeField(default=timezone.now)
     deck_made =  models.BooleanField(default = False)
     archived_card = models.ForeignKey(ArchivedCards, related_name='archived_card', on_delete=models.CASCADE, blank = True, null=True)
+    
+    # Manager instances
+    readyforprocessobject = ReadyForProcess()
 
-
+    def __str__(self):
+        return f"User: {self.user.username} Quote: '{self.incoming_quote}''"
 
 # Create your models here.

@@ -1,0 +1,26 @@
+{% extends 'main_entrance/base.html' %}
+
+{% block content %}
+{% comment %} SIDE MENU {% endcomment %}
+<div class="row">
+    <div class="col-2">    
+        {% include 'decks/base.html' %}
+    </div>
+    <div class = "col">    
+        {% comment %} All page content here {% endcomment %}
+    
+        <div class= "container">
+            <div class="jumbotron">
+                <h1> Welcome to decks</h1>
+                <hr>
+                <p class="lead"> Here there will be more detailed instruction about how decks work, tailored to user status (if they have made a 
+                deck before etc.). </p>
+            </div>
+        </div>
+    
+        
+        
+        {% comment %} This is the end of content {% endcomment %}
+    </div>
+</div>
+{% endblock content %}
