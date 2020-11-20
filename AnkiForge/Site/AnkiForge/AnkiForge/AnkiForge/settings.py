@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'crispy_forms',
     'membership',
     'decks',
+    'forge',
 ]
 
 CRISPY_TEMPLATE_PACK = 'bootstrap4'

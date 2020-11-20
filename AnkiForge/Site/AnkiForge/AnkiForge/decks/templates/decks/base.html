@@ -1,6 +1,14 @@
 
 <div class="list-group">
-    <a href="{% url 'decks:decks_create' %}" class="list-group-item list-group-item-action">Make a Deck</a>
-    <a href="{% url 'membership:select_membership' %}" class="list-group-item list-group-item-action">My Decks</a>
+    {% url 'decks:decks_index' as url %}
+    <a href="{{ url }}" class="list-group-item list-group-item-action {% if request.path == url %}active{% endif %}">Introduction</a>
+    {% url 'decks:decks_create' as url %}
+    <a href="{{ url }}" class="list-group-item list-group-item-action {% if request.path == url %}active{% endif %}">Make a Deck</a>
+    {% url 'decks:decks_list' as url %}
+    <a href="{{ url }}" class="list-group-item list-group-item-action {% if request.path == url %}active{% endif %}">My Decks</a>
 </div>
 
+                    {% comment %} {% url 'decks:decks_index' as url %}
+                    <li class="nav-item {% if request.path == url %}active{% endif %}">
+                        <a class="nav-link" href="{{ url }}">Decks</a>
+                    </li> {% endcomment %}

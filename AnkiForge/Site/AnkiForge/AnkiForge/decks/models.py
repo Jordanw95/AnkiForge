@@ -2,7 +2,7 @@ from django.db import models
 from django.conf import settings
 from django.utils import timezone
 import random
-
+from django.urls import reverse
 
 class CardModels(models.Model):
     CODE = 1041609445
@@ -101,6 +101,10 @@ class UserDecks(models.Model):
 
     def make_random_number():
         return random.randint(1000000000, 9999999999)
+    
+    def get_absolute_url(self):
+        return reverse("decks:decks_index")
+    
 
     user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name = 'user_decks', on_delete=models.CASCADE)
     deck_id = models.PositiveBigIntegerField(blank=True, default = make_random_number)
@@ -137,15 +141,16 @@ class ArchivedCards(models.Model):
 
 class IncomingCards(models.Model):
     
-    class ReadyForProcess(models.Manager):
-        def get_queryset(self):
-            return super().get_queryset().filter(ready_for_archive =True)
+    # class ReadyForProcess(models.Manager):
+    #     def get_queryset(self):
+    #         return super().get_queryset().filter(ready_for_archive =True)
 
-
+    def get_absolute_url(self):
+        return reverse("forge:forge_index")
 
     user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name = 'user_cards', on_delete=models.CASCADE)
     deck = models.ForeignKey(UserDecks, related_name = 'target_deck', on_delete=models.CASCADE)
-    cost = models.PositiveIntegerField()
+    cost = models.PositiveIntegerField(default = 5)
     ready_for_archive = models.BooleanField(default = False)
     submitted_to_archive = models.BooleanField(default = False)
     incoming_quote = models.CharField(max_length=200)
@@ -154,7 +159,7 @@ class IncomingCards(models.Model):
     archived_card = models.ForeignKey(ArchivedCards, related_name='archived_card', on_delete=models.CASCADE, blank = True, null=True)
     
     # Manager instances
-    readyforprocessobject = ReadyForProcess()
+    # readyforprocessobject = ReadyForProcess()
 
     def __str__(self):
         return f"User: {self.user.username} Quote: '{self.incoming_quote}''"
