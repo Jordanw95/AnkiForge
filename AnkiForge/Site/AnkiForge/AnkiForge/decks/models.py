@@ -161,6 +161,32 @@ class IncomingCards(models.Model):
     # Manager instances
     # readyforprocessobject = ReadyForProcess()
 
+    # Charging
+
+    def save(self, *args, **kwargs):
+        quote_length = len(self.incoming_quote)
+        user = self.user
+        membership = user.user_membership
+        deck = self.deck
+        media_costs = 0
+        translation_cost = quote_length * 1
+
+        if deck.images_enabled:
+            media_costs += 100
+        if deck.audio_enabled:
+            media_costs += quote_length * 1
+        
+        self.cost = media_costs + translation_cost
+        resultant_balance = membership.user_points - self.cost
+
+        if resultant_balance >= 0 :
+            membership.user_points = resultant_balance
+            self.ready_for_archive = True
+            user.user_membership.save()
+        else :
+            raise Exception("Insufficient credit for this transaction")
+        super().save(*args, **kwargs)
+        
     def __str__(self):
         return f"User: {self.user.username} Quote: '{self.incoming_quote}''"
 
