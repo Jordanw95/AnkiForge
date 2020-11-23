@@ -16,6 +16,12 @@ class IncomingCardCreateView(LoginRequiredMixin, CreateView):
     form_class = AddIncomingCardForm
     model = IncomingCards
 
+    # Passing the user to forms to adjust options
+    def get_form_kwargs(self):
+        kwargs = super(IncomingCardCreateView,self).get_form_kwargs()
+        kwargs['user'] = self.request.user
+        return kwargs
+    
     def form_valid(self,form):
         form.instance.user = self.request.user
         return super().form_valid(form)

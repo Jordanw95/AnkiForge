@@ -8,7 +8,12 @@ from crispy_forms.layout import Layout, Submit, Row, Column, HTML, Div
 class AddIncomingCardForm(ModelForm) : 
 
     def __init__(self, *args, **kwargs):
+        # We use pop to copy and remove the user variable we wanted before making form
+        user= kwargs.pop('user')
         super(AddIncomingCardForm, self).__init__(*args, **kwargs)
+        
+        # Only showing current user
+        self.fields['deck'].queryset = UserDecks.objects.filter(user=user)
 
         self.helper = FormHelper(self)
         self.helper.form_method = 'POST'
