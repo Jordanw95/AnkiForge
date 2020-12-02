@@ -1,4 +1,3 @@
-
 from django.shortcuts import render
 from django.views.generic import TemplateView, CreateView
 from django.contrib.auth import views as auth_views
@@ -7,6 +6,12 @@ from django.contrib.auth import login, authenticate
 from django.shortcuts import render, redirect
 
 from main_entrance.forms import MySignUpForm
+
+
+from rest_auth.views import LogoutView as auth_apiLogoutView
+from rest_auth.views import LoginView as auth_apiLoginView
+from rest_framework.authentication import TokenAuthentication
+from rest_framework.permissions import IsAuthenticated
 
 
 class IndexView(TemplateView):
@@ -34,3 +39,10 @@ def mysignupview(request):
 
 class HowItWorksView(TemplateView):
     template_name = "main_entrance/howitworks.html"
+
+class APILogoutView(auth_apiLogoutView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+class APILoginView(auth_apiLoginView):
+    pass
