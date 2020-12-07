@@ -1,0 +1,19 @@
+{% extends 'main_entrance/base.html' %}
+{% block content %}
+{% comment %} SIDE MENU {% endcomment %}
+<div class="row">
+    <div class="col-2">    
+        {% include 'decks/base.html' %}
+    </div>
+    <div class="col">
+        {% comment %} All page content here {% endcomment %}
+        <div class = "jumbotron">
+            {% for deck in userdecks.current_user_decks %}
+            <h1>{{ deck.ankiforge_deck_name }}</h1>
+            {% endfor %}
+        </div>
+
+        {% comment %} This is the end of content {% endcomment %}
+    </div>
+</div>
+{% endblock content %}
