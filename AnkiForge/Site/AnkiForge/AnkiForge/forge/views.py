@@ -67,9 +67,8 @@ class UserIncomingCardsAPIList(generics.ListCreateAPIView):
         return IncomingCards.objects.filter(user=user)
 
 
-"""All incoming cards view"""
-class AdminIncomingCardsAPIList(generics.ListCreateAPIView):
-    serializer_class = IncomingCardsSerializer
-    
+"""All incoming cards view AdminCardsView (TBC if go through this route) """
+
+
 
 
