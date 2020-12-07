@@ -91,21 +91,35 @@ WSGI_APPLICATION = 'AnkiForge.wsgi.application'
 
 import os
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql',
+#         'NAME': 'mydatabase',
+#         'USER': DB_USER,
+#         'PASSWORD': DB_PASSWORD,
+#         'HOST': 'forgedb.cl4kxej82v3q.us-east-2.rds.amazonaws.com',
+#         'PORT': '5432'
+#     }
+# }
+
+# import dj_database_url
+
+# db_from_env = dj_database_url.config(conn_max_age=600)
+# DATABASES['default'].update(db_from_env)
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'mydatabase',
-        'USER': DB_USER,
-        'PASSWORD': DB_PASSWORD,
-        'HOST': 'forgedb.cl4kxej82v3q.us-east-2.rds.amazonaws.com',
+        'NAME': 'ForgeLocal3',
+        'USER': 'postgres',
+        'PASSWORD': LOCAL_DB_PASSWORD,
+        'HOST': 'localhost',
         'PORT': '5432'
     }
 }
 
-import dj_database_url
 
-db_from_env = dj_database_url.config(conn_max_age=600)
-DATABASES['default'].update(db_from_env)
+
 
 # Password validation
 # https://docs.djangoproject.com/en/3.1/ref/settings/#auth-password-validators
