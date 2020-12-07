@@ -65,40 +65,11 @@ class UserIncomingCardsAPIList(generics.ListCreateAPIView):
     def get_queryset(self):
         user = self.request.user
         return IncomingCards.objects.filter(user=user)
-# class UserViewSet(viewsets.ReadOnlyModelViewSet):
-#     """
-#     This viewset automatically provides `list` and `retrieve` actions.
-#     """
-#     queryset = User.objects.all()
-#     serializer_class = UserSerializer
 
-# class SnippetViewSet(viewsets.ModelViewSet):
-#     """
-#     This viewset automatically provides `list`, `create`, `retrieve`,
-#     `update` and `destroy` actions.
 
-#     Additionally we also provide an extra `highlight` action.
-#     """
-#     queryset = Snippet.objects.all()
-#     serializer_class = SnippetSerializer
-#     permission_classes = [permissions.IsAuthenticatedOrReadOnly,
-#                           IsOwnerOrReadOnly]
+"""All incoming cards view"""
+class AdminIncomingCardsAPIList(generics.ListCreateAPIView):
+    serializer_class = IncomingCardsSerializer
+    
 
-#     @action(detail=True, renderer_classes=[renderers.StaticHTMLRenderer])
-#     def highlight(self, request, *args, **kwargs):
-#         snippet = self.get_object()
-#         return Response(snippet.highlighted)
 
-#     def perform_create(self, serializer):
-#         serializer.save(owner=self.request.user)
-
-# class AddIncomingCardsView(generics.ListCreateAPIView):
-#     queryset = IncomingCards.objects.all()
-#     serializer_class = IncomingCardsSerializer
-#     # permission_classes = [IsAuthenticated]
-
-#     def list(self, request):
-#         # Note the use of `get_queryset()` instead of `self.queryset`
-#         queryset = self.get_queryset()
-#         serializer = UserSerializer(queryset, many=True)
-#         return Response(serializer.data)
