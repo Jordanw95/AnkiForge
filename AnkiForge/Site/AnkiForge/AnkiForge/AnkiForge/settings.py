@@ -110,7 +110,7 @@ import os
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'ForgeLocal3',
+        'NAME': 'ForgeLocal4',
         'USER': 'postgres',
         'PASSWORD': LOCAL_DB_PASSWORD,
         'HOST': 'localhost',
