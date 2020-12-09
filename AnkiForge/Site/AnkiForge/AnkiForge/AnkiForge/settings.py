@@ -25,7 +25,7 @@ SECRET_KEY = SECRET_KEY
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['0.0.0.0',]
 
 
 # Application definition
@@ -107,19 +107,28 @@ import os
 # db_from_env = dj_database_url.config(conn_max_age=600)
 # DATABASES['default'].update(db_from_env)
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql',
+#         'NAME': 'ForgeLocal4',
+#         'USER': 'postgres',
+#         'PASSWORD': LOCAL_DB_PASSWORD,
+#         'HOST': 'localhost',
+#         'PORT': '5432'
+#     }
+# }
+
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'ForgeLocal4',
+        'NAME': 'postgres',
         'USER': 'postgres',
-        'PASSWORD': LOCAL_DB_PASSWORD,
-        'HOST': 'localhost',
-        'PORT': '5432'
+        'PASSWORD': 'postgres',
+        'HOST': 'db',
+        'PORT': 5432,
     }
 }
-
-
-
 
 # Password validation
 # https://docs.djangoproject.com/en/3.1/ref/settings/#auth-password-validators
