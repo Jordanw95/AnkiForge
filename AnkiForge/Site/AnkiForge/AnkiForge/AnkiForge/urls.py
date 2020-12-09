@@ -15,11 +15,22 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from membership.models import Membership
 
-urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('', include('main_entrance.urls')),
-    path('membership/', include('membership.urls')),
-    path('decks/', include('decks.urls')),
-    path('forge/', include('forge.urls')),
-]
+# This checks if models have been migrated and data ha been input yet, and prevents
+# running of views that rely on model instances or relationships. This
+# allows Docker to build the container ready to run with no migrations
+try :
+    Membership.objects.filter(membership_type="PAYG").first()
+    urlpatterns = [
+        path('admin/', admin.site.urls),
+        path('', include('main_entrance.urls')),
+        path('membership/', include('membership.urls')),
+        path('decks/', include('decks.urls')),
+        path('forge/', include('forge.urls')),
+    ]
+except :
+    urlpatterns = [
+        path('admin/', admin.site.urls),
+    ]
+

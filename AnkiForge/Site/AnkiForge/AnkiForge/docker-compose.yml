@@ -2,7 +2,7 @@ version: "3.8"
    
 services:
   db:
-    restart: always
+    # restart: always
     image: postgres
     environment:
       - POSTGRES_DB=postgres
@@ -10,7 +10,7 @@ services:
       - POSTGRES_PASSWORD=postgres
   web:
     build: .
-    command: python manage.py runserver 0.0.0.0:8000
+    entrypoint: /code/entrypoint.sh
     volumes:
       - .:/code
     ports:
