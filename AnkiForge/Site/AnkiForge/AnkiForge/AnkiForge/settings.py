@@ -135,6 +135,7 @@ DATABASES = {
 
 # 
 
+CELERY_BROKER_URL = os.environ['CELERY_BROKER']
 CELERY = {
     'BROKER_URL': os.environ['CELERY_BROKER'],
     'CELERY_IMPORTS': ('forge.tasks', ),
@@ -143,12 +144,12 @@ CELERY = {
     'CELERY_ACCEPT_CONTENT': ['json'],
 }
 
-CELERY_BEAT_SCHEDULE = {
-    'translate_and_archive': {
-        'task': 'forge.tasks.translate_and_archive',
-        'schedule': crontab()  # execute every minute
-    }
-}
+# CELERY_BEAT_SCHEDULE = {
+#     'translate_and_archive': {
+#         'task': 'forge.tasks.translate_and_archive',
+#         'schedule': crontab()  # execute every minute
+#     }
+# }
 # Password validation
 # https://docs.djangoproject.com/en/3.1/ref/settings/#auth-password-validators
 

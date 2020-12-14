@@ -42,13 +42,13 @@ class IncomingCardCreateView(LoginRequiredMixin, CreateView):
 #         form.send_task()
 #         # return super().form_valid(form)
 
+""" View for testing media collect task"""
+from django.shortcuts import render
+from django.http import HttpResponse
 
-# from django.shortcuts import render
-# from django.http import HttpResponse
-
-# def test_media_collect(request):
-#     test_taa.delay()
-#     return HttpResponse("The task should be sent!")
+def test_media_collect(request):
+    translate_and_archive.delay()
+    return HttpResponse("The task should be sent!")
 
 """API VIEWS"""
 
