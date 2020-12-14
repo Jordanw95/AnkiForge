@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from django.views.generic import TemplateView, CreateView, ListView
+from django.views.generic import TemplateView, CreateView, ListView, FormView, View
 from django.contrib.auth.mixins import LoginRequiredMixin
 from forge.forms import AddIncomingCardForm
 from decks.models import IncomingCards, UserDecks
@@ -9,6 +9,7 @@ from decks.serializers import UserDecksSerializer, IncomingCardsSerializer
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
 from rest_framework.response import Response
+from forge.tasks import translate_and_archive
 
 class ForgeIndexView(LoginRequiredMixin, TemplateView):
     login_url = 'main_entrance:login'
@@ -31,6 +32,23 @@ class IncomingCardCreateView(LoginRequiredMixin, CreateView):
     def form_valid(self,form):
         form.instance.user = self.request.user
         return super().form_valid(form)
+
+# class TestMediaCollectView(FormView):
+#     template_name = "forge/testmediacollect.html"
+#     form_class = TestMediaCollectForm
+#     success_url = "main_entrance:index"
+
+#     def form_valid(self, form):
+#         form.send_task()
+#         # return super().form_valid(form)
+
+
+# from django.shortcuts import render
+# from django.http import HttpResponse
+
+# def test_media_collect(request):
+#     test_taa.delay()
+#     return HttpResponse("The task should be sent!")
 
 """API VIEWS"""
 

@@ -138,12 +138,12 @@ class ArchivedCards(models.Model):
     def __str__(self) :
         return self.original_quote
 
+class ReadyForProcess(models.Manager):
+    def get_queryset(self):
+        return super().get_queryset().filter(ready_for_archive =True)
 
 class IncomingCards(models.Model):
     
-    # class ReadyForProcess(models.Manager):
-    #     def get_queryset(self):
-    #         return super().get_queryset().filter(ready_for_archive =True)
 
     def get_absolute_url(self):
         return reverse("forge:forge_index")
@@ -151,7 +151,7 @@ class IncomingCards(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name = 'user_cards', on_delete=models.CASCADE)
     deck = models.ForeignKey(UserDecks, related_name = 'target_deck', on_delete=models.CASCADE)
     cost = models.PositiveIntegerField(default = 5)
-    ready_for_archive = models.BooleanField(default = False)
+    ready_for_archive = models.BooleanField(default = True)
     submitted_to_archive = models.BooleanField(default = False)
     incoming_quote = models.CharField(max_length=200)
     quote_received_date = models.DateTimeField(default=timezone.now)
@@ -159,7 +159,7 @@ class IncomingCards(models.Model):
     archived_card = models.ForeignKey(ArchivedCards, related_name='archived_card', on_delete=models.CASCADE, blank = True, null=True)
     
     # Manager instances
-    # readyforprocessobject = ReadyForProcess()
+    readyforprocess_objects = ReadyForProcess()
 
     # Charging
 
