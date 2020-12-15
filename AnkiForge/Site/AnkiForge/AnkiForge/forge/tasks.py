@@ -6,7 +6,7 @@ from forge.MediaCollect import Controller
 
 logger = get_task_logger(__name__)
 
-
+# Potentially change this to async task where can send query as argument (maybe even dict it first).
 @shared_task
 def translate_and_archive():
     quotes = list(IncomingCards.readyforprocess_objects.values(
@@ -15,5 +15,5 @@ def translate_and_archive():
         'deck__audio_enabled','incoming_quote'
         ))
     Controller(quotes)
-    print("complete")
+    print("***TASK COMPLETE***")
         
