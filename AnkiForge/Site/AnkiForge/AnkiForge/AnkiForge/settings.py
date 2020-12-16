@@ -11,7 +11,7 @@ https://docs.djangoproject.com/en/3.1/ref/settings/
 """
 
 from pathlib import Path
-from .secretsettings import *
+from SecretKeys.secretsettings import *
 from celery.schedules import crontab
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
