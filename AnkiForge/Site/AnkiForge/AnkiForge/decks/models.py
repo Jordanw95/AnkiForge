@@ -3,6 +3,9 @@ from django.conf import settings
 from django.utils import timezone
 import random
 from django.urls import reverse
+# from forge.tasks import translate_and_archive
+import celery
+from django.db import transaction
 
 class CardModels(models.Model):
     CODE = 1041609445
@@ -51,12 +54,24 @@ class CardModels(models.Model):
 class UserDecks(models.Model):
     NATIVE_LANG_CHOICES = (
         ('en', 'English'),
-        ('es', 'Spanish')
+        ('es', 'Spanish'),
+        ('ja', 'Japanese'),
+        ('zh-CN', 'Chinese (Simplified)'),
+        ('zh-TW', 'Chinese (Traditional)'),
+        ('de', 'German'),
+        ('it', 'Italian'),
+        ('fr', 'French'),
     )
 
     LEARNT_LANG_CHOICES = (
         ('en', 'English'),
-        ('es', 'Spanish')
+        ('es', 'Spanish'),
+        ('ja', 'Japanese'),
+        ('zh-CN', 'Chinese (Simplified)'),
+        ('zh-TW', 'Chinese (Traditional)'),
+        ('de', 'German'),
+        ('it', 'Italian'),
+        ('fr', 'French'),
     )
         
     CODE = 1041609445
@@ -138,12 +153,12 @@ class ArchivedCards(models.Model):
     def __str__(self) :
         return self.original_quote
 
+class ReadyForProcess(models.Manager):
+    def get_queryset(self):
+        return super().get_queryset().filter(ready_for_archive =True, submitted_to_archive = False)
 
 class IncomingCards(models.Model):
     
-    # class ReadyForProcess(models.Manager):
-    #     def get_queryset(self):
-    #         return super().get_queryset().filter(ready_for_archive =True)
 
     def get_absolute_url(self):
         return reverse("forge:forge_index")
@@ -151,7 +166,7 @@ class IncomingCards(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name = 'user_cards', on_delete=models.CASCADE)
     deck = models.ForeignKey(UserDecks, related_name = 'target_deck', on_delete=models.CASCADE)
     cost = models.PositiveIntegerField(default = 5)
-    ready_for_archive = models.BooleanField(default = False)
+    ready_for_archive = models.BooleanField(default = True)
     submitted_to_archive = models.BooleanField(default = False)
     incoming_quote = models.CharField(max_length=200)
     quote_received_date = models.DateTimeField(default=timezone.now)
@@ -159,11 +174,11 @@ class IncomingCards(models.Model):
     archived_card = models.ForeignKey(ArchivedCards, related_name='archived_card', on_delete=models.CASCADE, blank = True, null=True)
     
     # Manager instances
-    # readyforprocessobject = ReadyForProcess()
+    objects = models.Manager()
+    readyforprocess_objects = ReadyForProcess()
 
     # Charging
-
-    def save(self, *args, **kwargs):
+    def calc_cost(self):
         quote_length = len(self.incoming_quote)
         user = self.user
         membership = user.user_membership
@@ -184,8 +199,18 @@ class IncomingCards(models.Model):
             self.ready_for_archive = True
             user.user_membership.save()
         else :
-            raise Exception("Insufficient credit for this transaction")
-        super().save(*args, **kwargs)
+            raise Exception("Insufficient credit for this transaction")        
+
+    def save(self, *args, **kwargs):
+        if self.submitted_to_archive:
+            super().save(*args, **kwargs)    
+        else:
+            self.calc_cost()
+            print("***USER CHARED***")
+            super().save(*args, **kwargs)
+            # Firstly we need to use trasaction commit to prevent data race
+            #  Next we need to call task differentyl to avoid circular import
+            transaction.on_commit(lambda: celery.current_app.send_task('translate_and_archive', (self.id,)))
         
     def __str__(self):
         return f"User: {self.user.username} Quote: '{self.incoming_quote}''"

@@ -9,4 +9,5 @@ urlpatterns = [
     path('add_card/', views.IncomingCardCreateView.as_view(), name = 'forge_add_incoming_card'),
     path('api/userdecks/', views.UserDecksAPIList.as_view(), name='api_user_decks'),
     path('api/usercards/', views.UserIncomingCardsAPIList.as_view(), name = 'api_user_cards'),
+    path('testmediacollect/', views.test_media_collect, name = 'testmediacollect'),
 ]
