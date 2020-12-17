@@ -178,37 +178,39 @@ class IncomingCards(models.Model):
     readyforprocess_objects = ReadyForProcess()
 
     # Charging
+    def calc_cost(self):
+        quote_length = len(self.incoming_quote)
+        user = self.user
+        membership = user.user_membership
+        deck = self.deck
+        media_costs = 0
+        translation_cost = quote_length * 1
+
+        if deck.images_enabled:
+            media_costs += 100
+        if deck.audio_enabled:
+            media_costs += quote_length * 1
+        
+        self.cost = media_costs + translation_cost
+        resultant_balance = membership.user_points - self.cost
+
+        if resultant_balance >= 0 :
+            membership.user_points = resultant_balance
+            self.ready_for_archive = True
+            user.user_membership.save()
+        else :
+            raise Exception("Insufficient credit for this transaction")        
 
     def save(self, *args, **kwargs):
         if self.submitted_to_archive:
             super().save(*args, **kwargs)    
         else:
-            quote_length = len(self.incoming_quote)
-            user = self.user
-            membership = user.user_membership
-            deck = self.deck
-            media_costs = 0
-            translation_cost = quote_length * 1
-
-            if deck.images_enabled:
-                media_costs += 100
-            if deck.audio_enabled:
-                media_costs += quote_length * 1
-            
-            self.cost = media_costs + translation_cost
-            resultant_balance = membership.user_points - self.cost
-
-            if resultant_balance >= 0 :
-                membership.user_points = resultant_balance
-                self.ready_for_archive = True
-                user.user_membership.save()
-            else :
-                raise Exception("Insufficient credit for this transaction")
+            self.calc_cost()
             print("***USER CHARED***")
             super().save(*args, **kwargs)
-        # Firstly we need to use trasaction commit to prevent data race
-        #  Next we need to call task differentyl to avoid circular import
-        transaction.on_commit(lambda: celery.current_app.send_task('translate_and_archive', (self.id,)))
+            # Firstly we need to use trasaction commit to prevent data race
+            #  Next we need to call task differentyl to avoid circular import
+            transaction.on_commit(lambda: celery.current_app.send_task('translate_and_archive', (self.id,)))
         
     def __str__(self):
         return f"User: {self.user.username} Quote: '{self.incoming_quote}''"
