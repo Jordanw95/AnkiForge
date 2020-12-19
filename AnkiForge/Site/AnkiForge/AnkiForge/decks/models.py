@@ -208,11 +208,32 @@ class IncomingCards(models.Model):
             self.calc_cost()
             print("***USER CHARED***")
             super().save(*args, **kwargs)
-            # Firstly we need to use trasaction commit to prevent data race
-            #  Next we need to call task differentyl to avoid circular import
+            # Firstly we need to use trasaction on commit to prevent data race
+            #  Next we need to call task through send task to avoid circular import
             transaction.on_commit(lambda: celery.current_app.send_task('translate_and_archive', (self.id,)))
         
     def __str__(self):
         return f"User: {self.user.username} Quote: '{self.incoming_quote}''"
+
+class MediaTransactions(models.Model):
+    media_collected_date = models.DateTimeField(default=timezone.now)    
+    incoming_card = models.OneToOneField(IncomingCards, related_name='incoming_card', on_delete=models.SET_NULL, null = True)
+    charecters_sent_translator = models.IntegerField()
+    charecters_returned_translator = models.IntegerField()
+    charecters_sent_detect = models.IntegerField()
+    audio_enabled = models.BooleanField(default = True)
+    media_enabled = models.BooleanField(default = True)
+
+    def __str__(self):
+        if self.audio_enabled:
+            audio = 'with'
+        else: 
+            audio = 'without'
+        if self.media_enabled:
+            media = 'with'
+        else: 
+            media = 'without'
+        return f"On {self.media_collected_date}, {self.charecters_sent_translator} were sent fortranslation {audio} audio and {media} pictures "
+    
 
 # Create your models here.

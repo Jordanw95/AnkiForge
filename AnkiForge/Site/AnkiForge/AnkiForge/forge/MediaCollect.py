@@ -31,21 +31,28 @@ class Controller():
 class Translate():
 
     def __init__(self, quote):
+        # Initialise and set variables
         self.translate_client = translate.TranslationServiceClient()
         self.location = "global"
         self.project_id = "ankiforge"
         self.parent = f"projects/{self.project_id}/locations/{self.location}"
-        # but first we need the language
-
-        self.detection_result = self.detect_language(quote)
-        
+        # Make a suitable sized string for detection
+        self.detection_quote = self.get_detect_sample(quote)
+        #  we need the language
+        self.detection_result = self.detect_language(self.detection_quote)
         # translate
         self.translation_result = self.make_translation(self.detection_result)
         
+    def get_detect_sample(self, quote):
+        #Is a way to try and send less complete words to detect and save some money
+        split_string = quote['incoming_quote'].split()
+        reduced_quote = split_string[:5]
+        quote['detection_quote'] = " ".join(reduced_quote)
+        return quote
+
     def detect_language(self, quote):
-        detecting_string = quote['incoming_quote'][0:10]
         response = self.translate_client.detect_language(
-            content=detecting_string,
+            content=quote['detection_quote'],
             parent=self.parent,
             mime_type="text/plain",  # mime types: text/plain, text/html
         )
