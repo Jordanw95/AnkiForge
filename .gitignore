@@ -3,6 +3,7 @@ AnkiForge/Site/AnkiForge/AnkiForge/GoogleKey.json
 AnkiForge/Site/AnkiForge/AnkiForge/SecretKeys/
 AnkiForge/Site/AnkiForge/AnkiForge/static/
 AnkiForge/Site/AnkiForge/AnkiForge/forge/testing_scripts
+AnkiForge/Site/AnkiForge/AnkiForge/env.env
 AnkiForge/env
 *.DS_Store
 *.idea
