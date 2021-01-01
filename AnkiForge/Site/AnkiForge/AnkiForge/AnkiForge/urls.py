@@ -35,11 +35,17 @@ from membership.models import Membership
 #         path('admin/', admin.site.urls),
 #     ] 
 
+FIRST_LAUNCH = False
 
-urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('', include('main_entrance.urls')),
-    path('membership/', include('membership.urls')),
-    path('decks/', include('decks.urls')),
-    path('forge/', include('forge.urls')),
-]
+if FIRST_LAUNCH:
+        urlpatterns = [
+        path('admin/', admin.site.urls),
+    ]
+else:
+    urlpatterns = [
+        path('admin/', admin.site.urls),
+        path('', include('main_entrance.urls')),
+        path('membership/', include('membership.urls')),
+        path('decks/', include('decks.urls')),
+        path('forge/', include('forge.urls')),
+    ]
