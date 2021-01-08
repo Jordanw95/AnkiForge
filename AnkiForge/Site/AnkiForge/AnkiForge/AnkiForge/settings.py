@@ -12,7 +12,6 @@ https://docs.djangoproject.com/en/3.1/ref/settings/
 
 from pathlib import Path
 from SecretKeys.secretsettings import *
-from SecretKeys.amazonkeys import *
 from celery.schedules import crontab
 import os
 
@@ -192,19 +191,6 @@ USE_TZ = True
 USE_S3 =os.environ.get('USE_S3') == 'TRUE'
 if USE_S3:
     print("***USING S3***")
-    # AWS_ACCESS_KEY_ID = AWS_ACCESS_KEY_ID
-    # AWS_SECRET_ACCESS_KEY = AWS_SECRET_ACCESS_KEY
-
-    # AWS_STORAGE_BUCKET_NAME = AWS_STORAGE_BUCKET_NAME 
-    # AWS_S3_CUSTOM_DOMAIN = AWS_S3_CUSTOM_DOMAIN
-
-    # AWS_LOCATION = 'static'
-    # STATICFILES_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
-
-    # DEFAULT_FILE_STORAGE = 'AnkiForge.storage_backends.MediaStorage'
-
-    # STATIC_URL = 'https://%s/%s/' % (AWS_S3_CUSTOM_DOMAIN, AWS_LOCATION)
-    # aws settings
     AWS_ACCESS_KEY_ID = AWS_ACCESS_KEY_ID
     AWS_SECRET_ACCESS_KEY = AWS_SECRET_ACCESS_KEY
     AWS_STORAGE_BUCKET_NAME = AWS_STORAGE_BUCKET_NAME
@@ -214,13 +200,14 @@ if USE_S3:
     # s3 static settings
     STATIC_LOCATION = 'static'
     STATIC_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/{STATIC_LOCATION}/'
-    STATICFILES_STORAGE = 'hello_django.storage_backends.StaticStorage'
+    STATICFILES_STORAGE = 'AnkiForge.storage_backends.StaticStorage'
     # s3 public media settings
     PUBLIC_MEDIA_LOCATION = 'media'
     MEDIA_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/{PUBLIC_MEDIA_LOCATION}/'
-    DEFAULT_FILE_STORAGE = 'hello_django.storage_backends.PublicMediaStorage'
+    DEFAULT_FILE_STORAGE = 'AnkiForge.storage_backends.PublicMediaStorage'
 
 else:
+    print("***USE LOCAL STATIC***")
     STATIC_URL = '/staticfiles/'
     STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
     MEDIA_URL = '/mediafiles/'

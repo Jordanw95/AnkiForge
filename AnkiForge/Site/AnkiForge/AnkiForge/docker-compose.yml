@@ -16,7 +16,7 @@ services:
     volumes:
       - .:/code
     env_file: &envfile
-      - env.env
+      - SecretKeys/env.env
     ports:
       - "8000:8000"
     depends_on:
