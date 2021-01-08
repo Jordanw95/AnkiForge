@@ -9,23 +9,30 @@ os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = "/code/SecretKeys/ankiforge-05bc6
 
 """WHEN RUNNING TESTING UNCOMMENT THIS"""
 
-# The taask will pass the data like this as a query set, which can be treated as a dictionary
-# os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = "/Users/jordanwaters/Desktop/Python/GitHubRepositories/AnkiForge/AnkiForge/Site/AnkiForge/AnkiForge/SecretKeys/ankiforge-05bc6fd7128b.json"
-
-
 # To begin, take input text, detect lang, translate to target lang
 class Controller():
 
     def __init__(self, quote):
         # At this point we are handed quote with a 
         self.quote = quote
-
         # Here we translate the quote
         self.T = Translate(self.quote)
         self.translated_result = self.T.translation_result
-        # here is the resultant dictionary we will return
+        # Need to filter to correct processes
+        # Instead of long else if here - could have if else and then determine whether to run image and audio individually within AzureVoiceController and AzureImageController
+        if self.translated_result['deck__audio_enabled'] == False and self.translated_result['deck__images_enabled'] == False:
+            self.final_result = self.translated_result
+            self.final_result['upload_audio_success']=False
+            self.final_result['upload_image_success']=False
+        else:
+            # Send to both and determine within each. 
+            # Will need to return success results for each too
+            self.AzureVoice = AzureVoiceController(self.translated_result)
+            self.azure_voice_processed = self.AzureVoice.azure_voice_processed_quote
+            # Then send to image
 
-
+            # after
+            self.final_result = self.azure_voice_processed
 
 
 class Translate():
@@ -82,110 +89,136 @@ class Translate():
             quote['translated_quote']=translation.translated_text
         return quote
 
+voice_codes = {
+    'es' : 'es-ES-AlvaroNeural',
+    'ja' : 'ja-JP-KeitaNeural',
+    'zh-CN' : 'zh-CN-YunyangNeural',
+    'zh-TW' : 'zh-TW-YunJheNeural',
+    'de' : 'de-DE-ConradNeural',
+    'it' : 'it-IT-DiegoNeural',
+    'fr' : 'fr-FR-HenriNeural',
+}
 
+language_codes = {
+    'es' : 'es-ES',
+    'ja' : 'ja-JP',
+    'zh-CN' : 'zh-CN',
+    'zh-TW' : 'zh-TW',
+    'de' : 'de-DE',
+    'it' : 'it-IT',
+    'fr' : 'fr-FR',
+}
 
-"""WHEN RUNNING TESTING UNCOMMENT THIS"""
+class AzureVoiceController():
+    
+    def __init__(self, quote):
+        self.quote = quote
+        if quote['deck__audio_enabled']:
+            self.AzureVoiceIn = AzureVoice(self.quote)
+            # Azure voice quote 
+            self.voice_processed_quote = self.AzureVoiceIn.finished_voiced_quote
+            # upload to s3
+            self.UploadS3In = UploadS3(self.voice_processed_quote)
+            # final returned dict 
+            self.azure_voice_processed_quote= self.UploadS3In.finished_uploaded_quote
+            print(self.azure_voice_processed_quote)
+        else:
+            # May need to approach difference between failed upload and not wanted upload
+            self.quote['upload_audio_success']= False
+            self.azure_voice_processed_quote = self.quote
 
-# quotes = [
-#             {
-#                 'id': 2, 'user_id': 1, 'deck_id': 1,
-#                 'deck__learnt_lang': 'es', 'deck__native_lang': 'en',
-#                 'deck__images_enabled': True, 'deck__audio_enabled': True,
-#                 'incoming_quote': 'You would'
-#             },
-#             {
-#                 'id': 1, 'user_id': 1, 'deck_id': 1, 
-#                 'deck__learnt_lang': 'es', 'deck__native_lang': 'en', 
-#                 'deck__images_enabled': True, 'deck__audio_enabled': True, 
-#                 'incoming_quote': 'This Is the quote for celery'
-#             },
-#             {
-#                 'id': 1, 'user_id': 1, 'deck_id': 1, 
-#                 'deck__learnt_lang': 'es', 'deck__native_lang': 'en', 
-#                 'deck__images_enabled': True, 'deck__audio_enabled': True, 
-#                 'incoming_quote': 'This Is another the quote for celery'
-#             },
-#             {
-#                 'id': 1, 'user_id': 1, 'deck_id': 1, 
-#                 'deck__learnt_lang': 'es', 'deck__native_lang': 'en', 
-#                 'deck__images_enabled': True, 'deck__audio_enabled': True, 
-#                 'incoming_quote': 'This Is another another the quote for celery'
-#             },
-#         ]
-# mixed_quotes = [
-#             {
-#                 'id': 2, 'user_id': 1, 'deck_id': 1,
-#                 'deck__learnt_lang': 'es', 'deck__native_lang': 'en',
-#                 'deck__images_enabled': True, 'deck__audio_enabled': True,
-#                 'incoming_quote': 'You would deeply regret it if you lost it all'
-#             },
-#             {
-#                 'id': 1, 'user_id': 1, 'deck_id': 1, 
-#                 'deck__learnt_lang': 'en', 'deck__native_lang': 'es', 
-#                 'deck__images_enabled': True, 'deck__audio_enabled': True, 
-#                 'incoming_quote': 'Me parece que esto es un otro cita'
-#             },
-#             {
-#                 'id': 1, 'user_id': 1, 'deck_id': 1, 
-#                 'deck__learnt_lang': 'fr', 'deck__native_lang': 'en', 
-#                 'deck__images_enabled': True, 'deck__audio_enabled': True, 
-#                 'incoming_quote': 'This Is another the quote for celery'
-#             },
-#             {
-#                 'id': 1, 'user_id': 1, 'deck_id': 1, 
-#                 'deck__learnt_lang': 'es', 'deck__native_lang': 'fr', 
-#                 'deck__images_enabled': True, 'deck__audio_enabled': True, 
-#                 'incoming_quote': 'Je pouvais entendre mes colocataires'
-#             },
-#             {
-#                 'id': 1, 'user_id': 1, 'deck_id': 1, 
-#                 'deck__learnt_lang': 'es', 'deck__native_lang': 'fr', 
-#                 'deck__images_enabled': True, 'deck__audio_enabled': True, 
-#                 'incoming_quote': 'おはようございます'
-#             }
-#         ]
+class AzureVoice():
+    
+    def __init__(self, quote):
+        # build audio config
+        self.quote_with_codes = self.set_config(quote)
+        self.quote_with_xml_file = self.create_xml(self.quote_with_codes)
+        self.finished_voiced_quote = self.request_voice(self.quote_with_xml_file)
+        # print(self.finished_voiced_quote)
+    
+    def set_config(self, quote):
+        # Need to collect        
+        quote['xml_lang'] = language_codes[(quote['deck__learnt_lang'])]
+        quote['voice_name'] = voice_codes[(quote['deck__learnt_lang'])]
+        # Send quote in the learnt lang, first two charecters used becuase of chinese inaccuracy in detect
+        if quote['deck__learnt_lang'][:2]==quote['original_language'][:2]:
+            quote['voiced_quote'] = quote['incoming_quote']
+            quote['voiced_quote_lang'] = quote['original_language']
+        elif quote['deck__learnt_lang'][:2]==quote['translated_language'][:2]:
+            quote['voiced_quote']=quote['translated_quote']
+            quote['voiced_quote_lang'] = quote['translated_language']
+        else:
+            print('***********************************************')
+            print('******ERROR IN SET_CONFIG OF AZURE VOICE*******')
+            print('***********************************************')
+        return quote
 
-# def test_and_time_easy():
-#     import time
-#     finished_quote = []
-#     for quote in quotes:
-#         time_1 = time.perf_counter()
-#         test_1 = Controller(quote)
-#         time_2 = time.perf_counter()
-#         elapsed_1 = time_2-time_1
+    
+    def create_xml(self, quote):
+        #here will need to write an XML file using element tree to send parameters to the api
+        # https://stackabuse.com/reading-and-writing-xml-files-in-python/
+        speak = ElementTree.Element('speak', {
+            'version' : "1.0",
+            'xmlns' : "http://www.w3.org/2001/10/synthesis",
+            'xml:lang' : quote['xml_lang'],
+        })
+        voice = ElementTree.SubElement(speak, 'voice', {'name':quote['voice_name']})
+        voice.text = quote['voiced_quote']
+        # write to xml file to be used for each api request
+        # Might need to change encoding for chinese and japanese, try after
+        # https://stackoverflow.com/questions/10046755/write-xml-utf-8-file-with-utf-8-data-with-elementtree
+        quote['xml_filename'] = "code/forge/recycled_xml_for_api.xml"
+        voice_data = ElementTree.tostring(speak)
+        voice_file=open(quote['xml_filename'], "wb")
+        voice_file.write(voice_data)
+        return quote
+    
+    def request_voice(self, quote):
+        self.speech_config = SpeechConfig(subscription=os.environ['AZURE_KEY'], region=os.environ['AZURE_REGION'])
+        # it works to save_to_wave file as .mp3 and this file can be loaded in anki
+        self.speech_config.set_speech_synthesis_output_format(SpeechSynthesisOutputFormat['Audio16Khz64KBitRateMonoMp3'])
+        self.synthesizer = SpeechSynthesizer(speech_config=self.speech_config, audio_config=None)
+        # Need to address filenaming
+        self.ssml_string = open(quote['xml_filename'], "r").read()
+        self.result = self.synthesizer.speak_ssml_async(self.ssml_string).get()
 
-#         print(f"***TIME ELAPSED FOR SENDING FOUR ITEMS IN UN GOLPE == {elapsed_1}***")
-#         finished_quote.append(test_1.translated_result)
-#     time.sleep(10)
+        self.stream = AudioDataStream(self.result)
+        quote = self.create_universal_filename(quote)
+        # No need to partition files locally
+        quote['local_file_path']= f"code/forge/audio/{quote['universal_filename']}"
+        self.stream.save_to_wav_file(quote['local_file_path'])
+        return quote
 
-#     print(finished_quote)
+    def create_universal_filename(self, quote):
+        # This needs to be looked at for scale use this link
+        # https://stackoverflow.com/questions/47529120/save-sentence-as-server-filename
+        # https://stackoverflow.com/questions/3006710/python-unhash-value
+        # self.simplified_quote = quote['voiced_quote'].translate({ord(c): None for c in string.whitespace})
+        # hashing should be fine aslong as I dont lose ArchivedDB
+        self.hashed_quote = hash(quote['voiced_quote'])
+        quote['universal_filename'] = f"{self.hashed_quote}.mp3"
+        return quote
 
-# def test_and_time_hard():
-#     import time
-#     finished_quote = []
-#     for quote in mixed_quotes:
-#         time_1 = time.perf_counter()
-#         test_1 = Controller(quote)
-#         time_2 = time.perf_counter()
-#         elapsed_1 = time_2-time_1
-
-#         print(f"***TIME ELAPSED FOR SENDING FOUR ITEMS IN UN GOLPE == {elapsed_1}***")
-#         finished_quote.append(test_1.translated_result)
-#     time.sleep(10)
-
-#     print(finished_quote)
-
-# def test_and_time_single_easy():
-#     import time
-
-#     quote = quotes[0]
-#     time_1 = time.perf_counter()
-#     test_1 = Controller(quote)
-#     time_2 = time.perf_counter()
-#     elapsed_1 = time_2-time_1
-#     print(test_1.translated_result)
-#     print(f"***TIME ELAPSED FOR SENDING ONE ITEM IN UN GOLPE == {elapsed_1}***")
-
-# # test_and_time_single_easy()
-# # test_and_time_hard()
-# test_and_time_hard()
+class UploadS3():
+    
+    def __init__(self, quote):
+        self.s3 = boto3.client('s3', aws_access_key_id=os.environ['AWS_ACCESS_KEY_ID'],aws_secret_access_key=os.environ['AWS_SECRET_ACCESS_KEY'])
+        # upload to s3
+        self.finished_uploaded_quote = self.upload_to_s3(quote)
+        # return location 
+    
+    def upload_to_s3(self, quote):
+        # Create s3 file path
+        quote['aws_file_path']= f"audio/{quote['voiced_quote_lang']}/{quote['universal_filename']}"
+        # Save to file path, may need to allow for more errors
+        try:
+            self.s3.upload_file(quote['local_file_path'], os.environ['AWS_STORAGE_BUCKET_NAME'], quote['aws_file_path'])
+            quote['upload_audio_success'] = True
+        except FileNotFoundError:
+            print("The file was not found")
+            quote['upload_audio_success'] = False
+        except NoCredentialsError:
+            print("Credentials not available")
+            quote['upload_audio_success'] = False    
+        # return with dictionary file path
+        return quote
