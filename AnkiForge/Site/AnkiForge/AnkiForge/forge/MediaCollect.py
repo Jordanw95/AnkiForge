@@ -173,9 +173,9 @@ class AzureVoice():
         # write to xml file to be used for each api request
         # Might need to change encoding for chinese and japanese, try after
         # https://stackoverflow.com/questions/10046755/write-xml-utf-8-file-with-utf-8-data-with-elementtree
-        quote['xml_filename'] = "code/forge/recycled_xml_for_api.xml"
+        quote['xml_filename'] = "forge/recycled_xml_for_api.xml"
         voice_data = ElementTree.tostring(speak)
-        voice_file=open(quote['xml_filename'], "wb")
+        voice_file=open(quote['xml_filename'], "wb+")
         voice_file.write(voice_data)
         return quote
     
@@ -191,7 +191,7 @@ class AzureVoice():
         self.stream = AudioDataStream(self.result)
         quote = self.create_universal_filename(quote)
         # No need to partition files locally
-        quote['local_file_path']= f"code/forge/audio/{quote['universal_filename']}"
+        quote['local_file_path']= f"forge/audio/{quote['universal_filename']}"
         self.stream.save_to_wav_file(quote['local_file_path'])
         return quote
 

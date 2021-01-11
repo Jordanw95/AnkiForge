@@ -20,13 +20,13 @@ def translate_and_archive(new_item):
     for quote in quotes:   
         processed = Controller(quote)
         print(processed.final_result)
-        translated_result = (processed.final_result)
+        final_result = (processed.final_result)
     # translated_result = {'id': 185, 'user_id': 1, 'deck_id': 2, 'deck__learnt_lang': 'zh-TW', 'deck__native_lang': 'en', 'deck__images_enabled': True, 'deck__audio_enabled': True, 'incoming_quote': '你好', 'original_language': 'zh-CN', 'translated_language': 'en', 'translated_quote': 'Hello there'}
     # Check that translation worked
-    if translated_result:
-        archived_object = make_archivedcards(translated_result)                      # Make archived
-        updated_quote = update_incomingcards(translated_result, archived_object)    #Updated incoming card
-        make_mediatransactions(translated_result, updated_quote)    # Make transaction record~
+    if final_result:
+        archived_object = make_archivedcards(final_result)                      # Make archived
+        updated_quote = update_incomingcards(final_result, archived_object)    #Updated incoming card
+        make_mediatransactions(final_result, updated_quote)    # Make transaction record~
 
         print("***TRANSLATION COMPLETE TASK COMPLETE***")
     else :
@@ -68,7 +68,7 @@ def make_mediatransactions(final_result, updated_quote):
             audio_enabled = final_result['deck__audio_enabled'],
             media_enabled =final_result['deck__images_enabled'],
             characters_sent_azure_voice= len(final_result['voiced_quote']),
-            voiced_quote_lang=final_result['voice_quote_lang'],
+            voiced_quote_lang=final_result['voiced_quote_lang'],
             found_in_archive=False,
         )
         transaction_object.save()
