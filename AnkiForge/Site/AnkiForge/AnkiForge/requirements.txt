@@ -1,3 +1,4 @@
+azure-cognitiveservices-speech
 amqp==5.0.2
 asgiref==3.3.1
 billiard==3.6.3.0
@@ -15,7 +16,7 @@ djangorestframework==3.12.2
 kombu==5.0.2
 Markdown==3.3.3
 prompt-toolkit==3.0.8
-psycopg2==2.8.6
+psycopg2-binary==2.8.6
 pytz==2020.4
 six==1.15.0
 sqlparse==0.4.1

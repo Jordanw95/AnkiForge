@@ -11,7 +11,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data/
   web:
-    build: .
+    image: testinstall:staging
     entrypoint: /code/entrypoint.sh
     volumes:
       - .:/code
@@ -23,7 +23,7 @@ services:
       - db
       - broker
   celery:
-    build: .
+    image: testinstall:staging
     restart: "no"
     command : celery -A AnkiForge worker -l info
     env_file: *envfile
@@ -33,7 +33,7 @@ services:
       - db
       - broker
   celery-beat:
-    build: .
+    image: testinstall:staging
     restart: "always"
     command: celery -A AnkiForge beat -l info
     env_file: *envfile

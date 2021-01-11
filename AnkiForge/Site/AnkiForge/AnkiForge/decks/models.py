@@ -147,8 +147,13 @@ class ArchivedCards(models.Model):
     original_language = models.CharField(max_length=50)
     translated_quote = models.TextField(max_length=300)
     translated_language = models.CharField(max_length=50)
-    audio_file_path = models.TextField(max_length=1000, default ="")
-    image_file_path= models.TextField(max_length=1000, default ="")
+    aws_audio_file_path = models.TextField(max_length=1000, default ="")
+    aws_image_file_path= models.TextField(max_length=1000, default ="")
+    universal_filename=models.TextField(max_length=1000, default ="")
+    upload_audio_success=models.BooleanField(default = False)
+    upload_image_success=models.BooleanField(default = False)
+    voiced_quote= models.TextField(max_length=1000, default ="")
+    voiced_quote_lang=models.CharField(max_length=10, default="")
     
     def __str__(self) :
         return self.original_quote
@@ -223,6 +228,9 @@ class MediaTransactions(models.Model):
     charecters_sent_detect = models.IntegerField()
     audio_enabled = models.BooleanField(default = True)
     media_enabled = models.BooleanField(default = True)
+    characters_sent_azure_voice=models.IntegerField(default=0)
+    voiced_quote_lang=models.CharField(max_length=10)
+    found_in_archive=models.BooleanField(default=False)
 
     def __str__(self):
         if self.audio_enabled:

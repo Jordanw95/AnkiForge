@@ -2,6 +2,12 @@ from google.cloud import translate
 import os
 import six
 import time
+from azure.cognitiveservices.speech import AudioDataStream, SpeechConfig, SpeechSynthesizer, SpeechSynthesisOutputFormat
+from azure.cognitiveservices.speech.audio import AudioOutputConfig
+from xml.etree import ElementTree
+import string
+import boto3
+from botocore.exceptions import NoCredentialsError
 """THIS MODULE SHOULD RECIVE SINGLE DICTIONARYS"""
 """ WHEN RUNNING THROUGH DOCKER UNCOMMENT THIS """
 
@@ -209,10 +215,10 @@ class UploadS3():
     
     def upload_to_s3(self, quote):
         # Create s3 file path
-        quote['aws_file_path']= f"audio/{quote['voiced_quote_lang']}/{quote['universal_filename']}"
+        quote['aws_audio_file_path']= f"audio/{quote['voiced_quote_lang']}/{quote['universal_filename']}"
         # Save to file path, may need to allow for more errors
         try:
-            self.s3.upload_file(quote['local_file_path'], os.environ['AWS_STORAGE_BUCKET_NAME'], quote['aws_file_path'])
+            self.s3.upload_file(quote['local_file_path'], os.environ['AWS_STORAGE_BUCKET_NAME'], quote['aws_audio_file_path'])
             quote['upload_audio_success'] = True
         except FileNotFoundError:
             print("The file was not found")
