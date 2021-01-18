@@ -40,14 +40,19 @@ def make_archivedcards(final_result):
             original_language = final_result['original_language'],
             translated_quote = final_result['translated_quote'],
             translated_language = final_result['translated_language'],
-            aws_audio_file_path = final_result['aws_audio_file_path'],
-            aws_image_file_path= "",
-            universal_filename= final_result['universal_filename'],
-            upload_audio_success= final_result['upload_audio_success'],
-            upload_image_success= False,
-            voiced_quote= final_result['voiced_quote'],
-            voiced_quote_lang= final_result['voiced_quote_lang'],
         )
+        if final_result['deck__audio_enabled']:
+            archived_object.aws_audio_file_path = final_result['aws_audio_file_path']
+            archived_object.universal_audio_filename= final_result['universal_audio_filename']
+            archived_object.upload_audio_success= final_result['upload_audio_success']
+            archived_object.voiced_quote= final_result['voiced_quote']
+            archived_object.voiced_quote_lang= final_result['voiced_quote_lang']
+        if final_result['deck__images_enabled']:
+            archived_object.aws_image_file_path=final_result['aws_image_file_path']
+            archived_object.universal_image_filename=final_result['universal_image_filename']
+            archived_object.upload_image_success=final_result['upload_image_success']
+            archived_object.image_search_phrase_string=final_result['image_search_phrase_string']
+            archived_object.retrieved_image_url= final_result['retrieved_image_url']
         archived_object.save()
         return archived_object
 
@@ -67,8 +72,11 @@ def make_mediatransactions(final_result, updated_quote):
             charecters_sent_detect = len(final_result['detection_quote']),
             audio_enabled = final_result['deck__audio_enabled'],
             media_enabled =final_result['deck__images_enabled'],
-            characters_sent_azure_voice= len(final_result['voiced_quote']),
-            voiced_quote_lang=final_result['voiced_quote_lang'],
-            found_in_archive=False,
         )
+        if final_result['deck__audio_enabled']:
+            transaction_object.voiced_quote_lang=final_result['voiced_quote_lang']
+            transaction_object.audio_found_in_db=final_result['audio_found_in_db']
+            transaction_object.characters_sent_azure_voice= len(final_result['voiced_quote'])
+        if final_result['deck__images_enabled']:
+            transaction_object.image_found_in_db=final_result['image_found_in_db']
         transaction_object.save()

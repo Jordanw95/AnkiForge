@@ -147,13 +147,16 @@ class ArchivedCards(models.Model):
     original_language = models.CharField(max_length=50)
     translated_quote = models.TextField(max_length=300)
     translated_language = models.CharField(max_length=50)
-    aws_audio_file_path = models.TextField(max_length=1000, default ="")
-    aws_image_file_path= models.TextField(max_length=1000, default ="")
-    universal_filename=models.TextField(max_length=1000, default ="")
+    aws_audio_file_path = models.TextField(max_length=1000, default =None, null = True)
+    aws_image_file_path= models.TextField(max_length=1000, default =None, null = True)
+    universal_audio_filename=models.TextField(max_length=1000, default =None, null=True)
+    universal_image_filename=models.TextField(max_length=1000, default =None, null=True)
     upload_audio_success=models.BooleanField(default = False)
     upload_image_success=models.BooleanField(default = False)
-    voiced_quote= models.TextField(max_length=1000, default ="")
-    voiced_quote_lang=models.CharField(max_length=10, default="")
+    voiced_quote= models.TextField(max_length=1000, default =None, null=True)
+    voiced_quote_lang=models.CharField(max_length=10, default=None, null=True)
+    image_search_phrase_string= models.TextField(max_length=1000, default =None, null=True)
+    retrieved_image_url= models.TextField(max_length=1000, default =None, null=True)
     
     def __str__(self) :
         return self.original_quote
@@ -230,7 +233,8 @@ class MediaTransactions(models.Model):
     media_enabled = models.BooleanField(default = True)
     characters_sent_azure_voice=models.IntegerField(default=0)
     voiced_quote_lang=models.CharField(max_length=10)
-    found_in_archive=models.BooleanField(default=False)
+    audio_found_in_db=models.BooleanField(default = False)
+    image_found_in_db=models.BooleanField(default = False)
 
     def __str__(self):
         if self.audio_enabled:

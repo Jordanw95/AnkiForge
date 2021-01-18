@@ -24,7 +24,7 @@ services:
       - broker
   celery:
     image: testinstall:staging
-    restart: "no"
+    restart: "always"
     command : celery -A AnkiForge worker -l info
     env_file: *envfile
     volumes:

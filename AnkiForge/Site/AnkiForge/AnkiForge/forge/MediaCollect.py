@@ -8,6 +8,11 @@ from xml.etree import ElementTree
 import string
 import boto3
 from botocore.exceptions import NoCredentialsError
+from nltk import word_tokenize, pos_tag
+import requests
+import io
+import shutil
+
 """THIS MODULE SHOULD RECIVE SINGLE DICTIONARYS"""
 """ WHEN RUNNING THROUGH DOCKER UNCOMMENT THIS """
 
@@ -33,12 +38,14 @@ class Controller():
         else:
             # Send to both and determine within each. 
             # Will need to return success results for each too
-            self.AzureVoice = AzureVoiceController(self.translated_result)
-            self.azure_voice_processed = self.AzureVoice.azure_voice_processed_quote
+            self.voicecontroller = VoiceController(self.translated_result)
+            self.voice_processed = self.voicecontroller.voice_processed_quote
             # Then send to image
-
+            self.imagecontroller = ImageController(self.voice_processed)
+            self.image_processed = self.imagecontroller.final_image_processed_quote
             # after
-            self.final_result = self.azure_voice_processed
+            self.final_result = self.image_processed
+            print(self.final_result)
 
 
 class Translate():
@@ -115,23 +122,29 @@ language_codes = {
     'fr' : 'fr-FR',
 }
 
-class AzureVoiceController():
+class VoiceController():
     
     def __init__(self, quote):
         self.quote = quote
         if quote['deck__audio_enabled']:
-            self.AzureVoiceIn = AzureVoice(self.quote)
-            # Azure voice quote 
-            self.voice_processed_quote = self.AzureVoiceIn.finished_voiced_quote
-            # upload to s3
-            self.UploadS3In = UploadS3(self.voice_processed_quote)
-            # final returned dict 
-            self.azure_voice_processed_quote= self.UploadS3In.finished_uploaded_quote
-            print(self.azure_voice_processed_quote)
+            # check db return true or false
+            self.quote['audio_found_in_db'] = False
+            # search in DB
+            if self.quote['audio_found_in_db']:
+                print("***AUDIO FOUND IN DB***")
+                self.voice_processed_quote = self.quote
+            else:
+                self.AzureVoiceIn = AzureVoice(self.quote)
+                # Azure voice quote 
+                self.voice_processed_quote = self.AzureVoiceIn.finished_voiced_quote
+                # upload to s3
+                self.UploadS3AudioIn = UploadS3Audio(self.voice_processed_quote)
+                # final returned dict 
+                self.voice_processed_quote= self.UploadS3AudioIn.finished_uploaded_quote
         else:
             # May need to approach difference between failed upload and not wanted upload
             self.quote['upload_audio_success']= False
-            self.azure_voice_processed_quote = self.quote
+            self.voice_processed_quote = self.quote
 
 class AzureVoice():
     
@@ -191,7 +204,7 @@ class AzureVoice():
         self.stream = AudioDataStream(self.result)
         quote = self.create_universal_filename(quote)
         # No need to partition files locally
-        quote['local_file_path']= f"forge/audio/{quote['universal_filename']}"
+        quote['local_file_path']= f"forge/audio/{quote['universal_audio_filename']}"
         self.stream.save_to_wav_file(quote['local_file_path'])
         return quote
 
@@ -202,10 +215,10 @@ class AzureVoice():
         # self.simplified_quote = quote['voiced_quote'].translate({ord(c): None for c in string.whitespace})
         # hashing should be fine aslong as I dont lose ArchivedDB
         self.hashed_quote = hash(quote['voiced_quote'])
-        quote['universal_filename'] = f"{self.hashed_quote}.mp3"
+        quote['universal_audio_filename'] = f"{self.hashed_quote}.mp3"
         return quote
 
-class UploadS3():
+class UploadS3Audio():
     
     def __init__(self, quote):
         self.s3 = boto3.client('s3', aws_access_key_id=os.environ['AWS_ACCESS_KEY_ID'],aws_secret_access_key=os.environ['AWS_SECRET_ACCESS_KEY'])
@@ -215,11 +228,178 @@ class UploadS3():
     
     def upload_to_s3(self, quote):
         # Create s3 file path
-        quote['aws_audio_file_path']= f"audio/{quote['voiced_quote_lang']}/{quote['universal_filename']}"
+        quote['aws_audio_file_path']= f"audio/{quote['voiced_quote_lang']}/{quote['universal_audio_filename']}"
         # Save to file path, may need to allow for more errors
         try:
             self.s3.upload_file(quote['local_file_path'], os.environ['AWS_STORAGE_BUCKET_NAME'], quote['aws_audio_file_path'])
             quote['upload_audio_success'] = True
+        except FileNotFoundError:
+            print("The file was not found")
+            quote['upload_audio_success'] = False
+        except NoCredentialsError:
+            print("Credentials not available")
+            quote['upload_audio_success'] = False    
+        # return with dictionary file path
+        return quote
+
+
+class ImageController():
+    """ This will take quote directly from controller, determine if image is required, search DB for image and if it is not found it will send a request to AzureBingSearch"""
+    def __init__(self, quote):
+        # Check we should be looking for images
+        if quote['deck__images_enabled']:
+            self.image_processed_quote = self.collect_image(quote)
+            if self.image_processed_quote['image_found_in_db']:
+                self.final_image_processed_quote = self.image_processed_quote
+            else:
+                self.final_image_processed_quote = self.upload_new_image_s3(self.image_processed_quote)
+        else:
+            self.final_image_processed_quote = self.no_image_required(quote)
+        # Check if image is already in DB
+
+    def collect_image(self, quote):
+        self.smartfilter = SmartFilter(quote)
+        self.filtered_for_search_quote=self.smartfilter.with_searchable_quote
+        image_in_db = False
+        if image_in_db:
+            quote['image_found_in_db'] = True
+            # set image aws location here
+        else:
+            self.azure_image = AzureImage(quote)
+            quote = self.azure_image.quote_with_local_filepath
+            quote['image_found_in_db'] = False
+        return quote
+
+    def no_image_required(self, quote):
+        quote['upload_image_success']=False
+        quote['image_found_in_db'] = False
+        return quote
+
+    def upload_new_image_s3(self, quote):
+        self.uploadimages3 = UploadS3Image(quote)
+        quote = self.uploadimages3.finished_upload_image
+        return quote
+
+class AzureImage():
+    
+    def __init__(self, quote):
+        self.azure_key = os.environ['AZURE_SEARCH_KEY']
+        self.quote_with_collected_image = self.make_request(quote)
+        self.quote_with_local_filepath = self.download_image(quote)
+
+    def make_request(self, quote):
+        self.search_term = quote['image_search_phrase_string']
+        self.params = {
+            "q": self.search_term,
+            "license": "public", 
+            "imageType":"photo",
+            "size":"Large",
+            "maxWidth":"800",
+            "maxHeight":"800",
+            "aspect": "Square"
+            }
+        self.headers = {"Ocp-Apim-Subscription-Key" : self.azure_key}
+        self.search_url = "https://api.bing.microsoft.com/v7.0/images/search"
+        self.response = requests.get(self.search_url, headers = self.headers, params = self.params)
+        self.response.raise_for_status()
+        self.search_results=self.response.json()
+        # Retrieve the value that contains all image results and info
+        self.value = self.search_results['value']
+        # Save the first image results url path
+        quote['retrieved_image_url']= self.value[0]['contentUrl']
+        return quote
+
+    def download_image(self, quote):
+        quote = self.create_universal_image_filename(quote)
+        self.filepath = f"forge/images/{quote['universal_image_filename']}"
+        self.r = requests.get(quote['retrieved_image_url'], stream=True)
+        if self.r.status_code == 200:
+            self.r.raw.decode_content = True
+            print(f'*IMAGE Beginning download to {self.filepath}*')
+            with open(self.filepath, 'wb') as f:
+                shutil.copyfileobj(self.r.raw, f)
+                print('Image downloaded')
+                quote['local_image_filepath'] = self.filepath
+                return quote
+    
+    def create_universal_image_filename(self, quote):
+        self.hashed_quote = hash(quote['image_search_phrase_string'])
+        # Need to address filetype properly at some point.
+        quote['universal_image_filename'] = f"{self.hashed_quote}.jpg"
+        return quote
+
+
+
+class SmartFilter():
+    """Should any translated phrase and return an appropriate search string"""
+    def __init__(self, quote):
+        self.with_english_quote = self.get_english_quote(quote)
+        self.test_length = len(quote['english_quote'].split())
+        if self.test_length < 4:
+            self.with_searchable_quote = self.small_quote(self.with_english_quote)
+        else:
+            self.with_searchable_quote = self.get_searchable(self.with_english_quote)
+    
+    def small_quote(self, quote):
+        quote['image_search_phrase_list']=quote['english_quote'].split()
+        quote['image_search_phrase_string']= quote['english_quote']
+        return quote
+    def get_english_quote(self, quote):
+        if quote['original_language'] == 'en':
+            quote['english_quote'] = quote['incoming_quote']
+        else:
+            quote['english_quote'] = quote['translated_quote']
+        return quote
+
+    def get_searchable(self, quote):
+        self.token = word_tokenize(quote['english_quote'])
+        self.tagged = pos_tag(self.token)
+        # return struct [('word', 'NN')]
+        # check returns somthing, all need to be formatted as a list
+        if self.ideal_clean_attempt(self.tagged):
+            quote['image_search_phrase_list'] = self.ideal_clean_attempt(self.tagged)
+        # if not send back to second clean
+        elif self.second_clean_attempt(self.tagged):
+            quote['image_search_phrase_list'] = self.second_clean_attempt(self.tagged)
+        # if still no just set whole string
+        else: 
+            quote['image_search_phrase_list'] = self.token
+        # check result not too long
+        # shorten if it is
+        if len(quote['image_search_phrase_list']) > 6 :
+            quote['image_search_phrase_list'] = quote['image_search_phrase_list'][:5]
+        # send back
+        quote['image_search_phrase_string'] = " ".join(quote['image_search_phrase_list'])
+        return quote
+
+
+    def ideal_clean_attempt(self, tagged):
+        self.ok_tags = ['NN', 'NNP', 'NNS', 'NNPS', 'NNPS', 'VBD']
+        self.result = [x[0] for x in tagged if x[1] in self.ok_tags]
+        return self.result
+    
+    def second_clean_attempt(self, tagged):
+        self.ok_tags = ['NN', 'NNP', 'NNS', 'NNPS', 'NNPS', 'VBD', 'JJ', 'VB', 'PRP']
+        self.result = [x[0] for x in tagged if x[1] in self.ok_tags]
+        return self.result
+
+class UploadS3Image():
+    
+    def __init__(self, quote):
+        self.s3 = boto3.client('s3', aws_access_key_id=os.environ['AWS_ACCESS_KEY_ID'],aws_secret_access_key=os.environ['AWS_SECRET_ACCESS_KEY'])
+        # upload to s3
+        self.finished_upload_image = self.upload_image_to_s3(quote)
+        # return location 
+    
+    def upload_image_to_s3(self, quote):
+        # just gonnan save image locally first dynamic transfer seems inconsistent
+        quote['aws_image_file_path']= f"images/{quote['universal_image_filename']}"
+        # Save to file path, may need to allow for more errors
+        print('*IMAGE begginging upload to s3*')
+        try:
+            self.s3.upload_file(quote['local_image_filepath'], os.environ['AWS_STORAGE_BUCKET_NAME'], quote['aws_image_file_path'])
+            quote['upload_image_success'] = True
+            print('*IMAGE UPLOADED line 394*')
         except FileNotFoundError:
             print("The file was not found")
             quote['upload_audio_success'] = False
