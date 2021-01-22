@@ -12,6 +12,7 @@ from nltk import word_tokenize, pos_tag
 import requests
 import io
 import shutil
+from decks.models import ArchivedCards
 
 """THIS MODULE SHOULD RECIVE SINGLE DICTIONARYS"""
 """ WHEN RUNNING THROUGH DOCKER UNCOMMENT THIS """
@@ -35,10 +36,16 @@ class Controller():
             self.final_result = self.translated_result
             self.final_result['upload_audio_success']=False
             self.final_result['upload_image_success']=False
+            self.final_result['audio_found_in_db']= False
+            self.final_result['image_found_in_db'] = False
         else:
             # Send to both and determine within each. 
             # Will need to return success results for each too
-            self.voicecontroller = VoiceController(self.translated_result)
+            self.translated_result = self.set_config(self.translated_result)
+            # regardless of outcome of search I need to set media found
+            self.translated_and_searched_result = self.search_db(self.translated_result)
+
+            self.voicecontroller = VoiceController(self.translated_and_searched_result)
             self.voice_processed = self.voicecontroller.voice_processed_quote
             # Then send to image
             self.imagecontroller = ImageController(self.voice_processed)
@@ -47,6 +54,45 @@ class Controller():
             self.final_result = self.image_processed
             print(self.final_result)
 
+    def set_config(self, quote):
+        # Need to collect        
+        quote['xml_lang'] = language_codes[(quote['deck__learnt_lang'])]
+        quote['voice_name'] = voice_codes[(quote['deck__learnt_lang'])]
+        # Send quote in the learnt lang, first two charecters used becuase of chinese inaccuracy in detect
+        if quote['deck__learnt_lang'][:2]==quote['original_language'][:2]:
+            quote['voiced_quote'] = quote['incoming_quote']
+            quote['voiced_quote_lang'] = quote['original_language']
+        elif quote['deck__learnt_lang'][:2]==quote['translated_language'][:2]:
+            quote['voiced_quote']=quote['translated_quote']
+            quote['voiced_quote_lang'] = quote['translated_language']
+        else:
+            print('***********************************************')
+            print('******ERROR IN SET_CONFIG FOR VOICE AND SEARCH *******')
+            print('***********************************************')
+        return quote
+
+    def search_db(self, quote):
+        if quote['deck__audio_enabled'] == True and quote['deck__images_enabled'] == True:
+            # Search DB using voiced quote with query set that incluides all enabled
+            self.search_results =ArchivedCards.duplicate_archive_search_objects.filter(voiced_quote=quote['voiced_quote'], voiced_quote_lang = quote['voiced_quote_lang'])
+            # This will return a quesry set, if it is full, need to set all parameters based on it and then passing it through all the other steps should do this without problems
+            # The better option would be to just be able to pass back the archived object ID and save the incoming card with a realtionship to it, would save making a new archivedobject
+            # This will required editing the tasks.py and removing all the found_in_db parametersa and if. probs best though.
+            if self.search_results:
+                self.archived_card = self.search_results.first()
+                quote['image_found_in_db'] = True
+                quote['audio_found_in_db'] = True
+                quote['archived_card_id'] = self.archived_card.id
+                return quote
+            else: 
+                quote['audio_found_in_db'] = False
+                quote['image_found_in_db'] = False
+                return quote
+            
+        else: 
+            quote['audio_found_in_db'] = False
+            quote['image_found_in_db'] = False
+            return quote
 
 class Translate():
 
@@ -83,6 +129,14 @@ class Translate():
                 quote['translated_language']= quote['deck__native_lang']
             else:
                 quote['translated_language']= quote['deck__learnt_lang']
+        # the majority of the time it should match one of these and there is no problem
+        # however sometimes detect is poor *asian language* so need to resort to else where we assume poorly translated is 
+        # the learnt language and not english
+        if quote['original_language'][:2] == quote['deck__learnt_lang'][:2] or quote['original_language'][:2] == quote['deck__native_lang'][:2]:
+            pass
+        else : 
+            quote['translated_language']= quote['deck__native_lang']
+            quote['original_language'] = quote['deck__learnt_lang']
         return quote
 
         # quote['original_language']= self.translate_client.detect_language(detecting_string)
@@ -125,11 +179,9 @@ language_codes = {
 class VoiceController():
     
     def __init__(self, quote):
+        # include in self.quote the config for voice
         self.quote = quote
-        if quote['deck__audio_enabled']:
-            # check db return true or false
-            self.quote['audio_found_in_db'] = False
-            # search in DB
+        if self.quote['deck__audio_enabled']:
             if self.quote['audio_found_in_db']:
                 print("***AUDIO FOUND IN DB***")
                 self.voice_processed_quote = self.quote
@@ -146,33 +198,18 @@ class VoiceController():
             self.quote['upload_audio_success']= False
             self.voice_processed_quote = self.quote
 
+
+
 class AzureVoice():
     
     def __init__(self, quote):
         # build audio config
-        self.quote_with_codes = self.set_config(quote)
-        self.quote_with_xml_file = self.create_xml(self.quote_with_codes)
+        # self.quote_with_codes = self.set_config(quote)
+        self.quote_with_xml_file = self.create_xml(quote)
         self.finished_voiced_quote = self.request_voice(self.quote_with_xml_file)
         # print(self.finished_voiced_quote)
     
-    def set_config(self, quote):
-        # Need to collect        
-        quote['xml_lang'] = language_codes[(quote['deck__learnt_lang'])]
-        quote['voice_name'] = voice_codes[(quote['deck__learnt_lang'])]
-        # Send quote in the learnt lang, first two charecters used becuase of chinese inaccuracy in detect
-        if quote['deck__learnt_lang'][:2]==quote['original_language'][:2]:
-            quote['voiced_quote'] = quote['incoming_quote']
-            quote['voiced_quote_lang'] = quote['original_language']
-        elif quote['deck__learnt_lang'][:2]==quote['translated_language'][:2]:
-            quote['voiced_quote']=quote['translated_quote']
-            quote['voiced_quote_lang'] = quote['translated_language']
-        else:
-            print('***********************************************')
-            print('******ERROR IN SET_CONFIG OF AZURE VOICE*******')
-            print('***********************************************')
-        return quote
 
-    
     def create_xml(self, quote):
         #here will need to write an XML file using element tree to send parameters to the api
         # https://stackabuse.com/reading-and-writing-xml-files-in-python/
@@ -244,14 +281,14 @@ class UploadS3Audio():
 
 
 class ImageController():
-    """ This will take quote directly from controller, determine if image is required, search DB for image and if it is not found it will send a request to AzureBingSearch"""
+    """ This will take quote directly from controller, determine if image is required, Should be told before hand if result is already in DB and if it is not found it will send a request to AzureBingSearch"""
     def __init__(self, quote):
         # Check we should be looking for images
         if quote['deck__images_enabled']:
-            self.image_processed_quote = self.collect_image(quote)
-            if self.image_processed_quote['image_found_in_db']:
-                self.final_image_processed_quote = self.image_processed_quote
+            if quote['image_found_in_db']:
+                self.final_image_processed_quote = quote
             else:
+                self.image_processed_quote = self.collect_image(quote)
                 self.final_image_processed_quote = self.upload_new_image_s3(self.image_processed_quote)
         else:
             self.final_image_processed_quote = self.no_image_required(quote)
@@ -260,14 +297,10 @@ class ImageController():
     def collect_image(self, quote):
         self.smartfilter = SmartFilter(quote)
         self.filtered_for_search_quote=self.smartfilter.with_searchable_quote
-        image_in_db = False
-        if image_in_db:
-            quote['image_found_in_db'] = True
-            # set image aws location here
-        else:
-            self.azure_image = AzureImage(quote)
-            quote = self.azure_image.quote_with_local_filepath
-            quote['image_found_in_db'] = False
+        self.azure_image = AzureImage(quote)
+        quote = self.azure_image.quote_with_local_filepath
+        print(quote)
+        quote['image_found_in_db'] = False
         return quote
 
     def no_image_required(self, quote):
@@ -284,8 +317,12 @@ class AzureImage():
     
     def __init__(self, quote):
         self.azure_key = os.environ['AZURE_SEARCH_KEY']
+        # print("****CHECKING ERROR***")
+        # print(quote)
+        # print("**** WHY DIDNT THIS SEARCH RETURN RESULTS???***")
         self.quote_with_collected_image = self.make_request(quote)
         self.quote_with_local_filepath = self.download_image(quote)
+        print(self.quote_with_local_filepath)
 
     def make_request(self, quote):
         self.search_term = quote['image_search_phrase_string']
@@ -305,6 +342,7 @@ class AzureImage():
         self.search_results=self.response.json()
         # Retrieve the value that contains all image results and info
         self.value = self.search_results['value']
+        print(self.value)
         # Save the first image results url path
         quote['retrieved_image_url']= self.value[0]['contentUrl']
         return quote
@@ -366,8 +404,8 @@ class SmartFilter():
             quote['image_search_phrase_list'] = self.token
         # check result not too long
         # shorten if it is
-        if len(quote['image_search_phrase_list']) > 6 :
-            quote['image_search_phrase_list'] = quote['image_search_phrase_list'][:5]
+        if len(quote['image_search_phrase_list']) > 4 :
+            quote['image_search_phrase_list'] = quote['image_search_phrase_list'][:3]
         # send back
         quote['image_search_phrase_string'] = " ".join(quote['image_search_phrase_list'])
         return quote

@@ -7,6 +7,7 @@ from django.urls import reverse
 import celery
 from django.db import transaction
 
+
 class CardModels(models.Model):
     CODE = 1041609445
     CARD_TYPE ='Basic (and reversed card)' 
@@ -141,6 +142,12 @@ class UserDecks(models.Model):
 
     def __str__(self):
         return self.ankiforge_deck_name
+    
+class DuplicateArchiveSearch(models.Manager):    
+    def get_queryset(self):
+        return super().get_queryset().filter(upload_audio_success=True, upload_image_success=True)
+
+# Dynamically make search manager
 
 class ArchivedCards(models.Model):
     original_quote = models.CharField(max_length=240)
@@ -157,10 +164,16 @@ class ArchivedCards(models.Model):
     voiced_quote_lang=models.CharField(max_length=10, default=None, null=True)
     image_search_phrase_string= models.TextField(max_length=1000, default =None, null=True)
     retrieved_image_url= models.TextField(max_length=1000, default =None, null=True)
+
+    # managers
+    objects = models.Manager()
+    duplicate_archive_search_objects = DuplicateArchiveSearch()
     
     def __str__(self) :
         return self.original_quote
 
+
+""" GET QUOTES READY FOR PROCESSING """
 class ReadyForProcess(models.Manager):
     def get_queryset(self):
         return super().get_queryset().filter(ready_for_archive =True, submitted_to_archive = False)

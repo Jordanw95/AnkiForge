@@ -14,25 +14,31 @@ def translate_and_archive(new_item):
         'id','user_id','deck_id','deck__learnt_lang',
         'deck__native_lang','deck__images_enabled',
         'deck__audio_enabled','incoming_quote'
-        )
-    
+        ) 
     translated_result = False
     for quote in quotes:   
         processed = Controller(quote)
         print(processed.final_result)
         final_result = (processed.final_result)
-    # translated_result = {'id': 185, 'user_id': 1, 'deck_id': 2, 'deck__learnt_lang': 'zh-TW', 'deck__native_lang': 'en', 'deck__images_enabled': True, 'deck__audio_enabled': True, 'incoming_quote': '你好', 'original_language': 'zh-CN', 'translated_language': 'en', 'translated_quote': 'Hello there'}
     # Check that translation worked
     if final_result:
-        archived_object = make_archivedcards(final_result)                      # Make archived
-        updated_quote = update_incomingcards(final_result, archived_object)    #Updated incoming card
-        make_mediatransactions(final_result, updated_quote)    # Make transaction record~
-
-        print("***TRANSLATION COMPLETE TASK COMPLETE***")
+        if final_result['audio_found_in_db'] and final_result['image_found_in_db']:
+            save_with_db_media(final_result)
+            print(f"***INCOMING CARD SAVED WITH PREVIOUS ARCHIVED CARD ID = {final_result['archived_card_id']}***")
+        else:
+            save_with_retrieved_media(final_result)
     else :
-        print("***Failed to translate card***")
+        print("***FAILURE IN MEDIA_COLLECT.PY TO RETURN RESULT**")
 
-        
+def save_with_db_media(final_result):
+    archived_object = ArchivedCards.objects.get(id = final_result['archived_card_id'])
+    updated_quote = update_incomingcards(final_result, archived_object)
+    make_mediatransactions(final_result, updated_quote)
+
+def save_with_retrieved_media(final_result):    
+    archived_object = make_archivedcards(final_result)                      # Make archived
+    updated_quote = update_incomingcards(final_result, archived_object)    #Updated incoming card
+    make_mediatransactions(final_result, updated_quote) 
 
 def make_archivedcards(final_result):
         archived_object = ArchivedCards(
@@ -76,7 +82,27 @@ def make_mediatransactions(final_result, updated_quote):
         if final_result['deck__audio_enabled']:
             transaction_object.voiced_quote_lang=final_result['voiced_quote_lang']
             transaction_object.audio_found_in_db=final_result['audio_found_in_db']
-            transaction_object.characters_sent_azure_voice= len(final_result['voiced_quote'])
+            if final_result['audio_found_in_db']:
+                pass
+            else: 
+                transaction_object.characters_sent_azure_voice= len(final_result['voiced_quote'])
         if final_result['deck__images_enabled']:
             transaction_object.image_found_in_db=final_result['image_found_in_db']
         transaction_object.save()
+
+# def make_mediatransaction_found_in_db(final_result, updated_quote, archived_object):
+#         transaction_object = MediaTransactions( 
+#             incoming_card = updated_quote,
+#             charecters_sent_translator = len(final_result['incoming_quote']),
+#             charecters_returned_translator = len(final_result['translated_quote']),
+#             charecters_sent_detect = len(final_result['detection_quote']),
+#             audio_enabled = final_result['deck__audio_enabled'],
+#             media_enabled =final_result['deck__images_enabled'],
+#         )
+#         if final_result['deck__audio_enabled']:
+#             transaction_object.voiced_quote_lang=final_result['voiced_quote_lang']
+#             transaction_object.audio_found_in_db=final_result['audio_found_in_db']
+#             transaction_object.characters_sent_azure_voice= len(final_result['voiced_quote'])
+#         if final_result['deck__images_enabled']:
+#             transaction_object.image_found_in_db=final_result['image_found_in_db']
+#         transaction_object.save()
