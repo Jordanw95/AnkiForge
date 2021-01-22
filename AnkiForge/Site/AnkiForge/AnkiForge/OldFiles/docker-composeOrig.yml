@@ -1,0 +1,55 @@
+version: "3.8"
+   
+services:
+  db:
+    # restart: always
+    image: postgres:13.1
+    environment:
+      - POSTGRES_DB=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+  web:
+    build: .
+    entrypoint: /code/entrypoint.sh
+    volumes:
+      - .:/code
+    env_file: &envfile
+      - SecretKeys/env.env
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+      - broker
+  celery:
+    build: .
+    restart: "no"
+    command : celery -A AnkiForge worker -l info
+    env_file: *envfile
+    volumes:
+      - .:/code
+    depends_on: 
+      - db
+      - broker
+  celery-beat:
+    build: .
+    restart: "always"
+    command: celery -A AnkiForge beat -l info
+    env_file: *envfile
+    volumes:
+      - .:/code
+    depends_on:
+      - db
+      - broker
+  broker:
+    image: rabbitmq:3
+    env_file: *envfile
+    ports: 
+      - 5672:5672
+
+
+
+
+volumes:
+  postgres_data:

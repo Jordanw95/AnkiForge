@@ -7,6 +7,7 @@ from django.urls import reverse
 import celery
 from django.db import transaction
 
+
 class CardModels(models.Model):
     CODE = 1041609445
     CARD_TYPE ='Basic (and reversed card)' 
@@ -141,18 +142,38 @@ class UserDecks(models.Model):
 
     def __str__(self):
         return self.ankiforge_deck_name
+    
+class DuplicateArchiveSearch(models.Manager):    
+    def get_queryset(self):
+        return super().get_queryset().filter(upload_audio_success=True, upload_image_success=True)
+
+# Dynamically make search manager
 
 class ArchivedCards(models.Model):
     original_quote = models.CharField(max_length=240)
     original_language = models.CharField(max_length=50)
     translated_quote = models.TextField(max_length=300)
     translated_language = models.CharField(max_length=50)
-    audio_file_path = models.TextField(max_length=1000, default ="")
-    image_file_path= models.TextField(max_length=1000, default ="")
+    aws_audio_file_path = models.TextField(max_length=1000, default =None, null = True)
+    aws_image_file_path= models.TextField(max_length=1000, default =None, null = True)
+    universal_audio_filename=models.TextField(max_length=1000, default =None, null=True)
+    universal_image_filename=models.TextField(max_length=1000, default =None, null=True)
+    upload_audio_success=models.BooleanField(default = False)
+    upload_image_success=models.BooleanField(default = False)
+    voiced_quote= models.TextField(max_length=1000, default =None, null=True)
+    voiced_quote_lang=models.CharField(max_length=10, default=None, null=True)
+    image_search_phrase_string= models.TextField(max_length=1000, default =None, null=True)
+    retrieved_image_url= models.TextField(max_length=1000, default =None, null=True)
+
+    # managers
+    objects = models.Manager()
+    duplicate_archive_search_objects = DuplicateArchiveSearch()
     
     def __str__(self) :
         return self.original_quote
 
+
+""" GET QUOTES READY FOR PROCESSING """
 class ReadyForProcess(models.Manager):
     def get_queryset(self):
         return super().get_queryset().filter(ready_for_archive =True, submitted_to_archive = False)
@@ -208,11 +229,36 @@ class IncomingCards(models.Model):
             self.calc_cost()
             print("***USER CHARED***")
             super().save(*args, **kwargs)
-            # Firstly we need to use trasaction commit to prevent data race
-            #  Next we need to call task differentyl to avoid circular import
+            # Firstly we need to use trasaction on commit to prevent data race
+            #  Next we need to call task through send task to avoid circular import
             transaction.on_commit(lambda: celery.current_app.send_task('translate_and_archive', (self.id,)))
         
     def __str__(self):
         return f"User: {self.user.username} Quote: '{self.incoming_quote}''"
+
+class MediaTransactions(models.Model):
+    media_collected_date = models.DateTimeField(default=timezone.now)    
+    incoming_card = models.OneToOneField(IncomingCards, related_name='incoming_card', on_delete=models.SET_NULL, null = True)
+    charecters_sent_translator = models.IntegerField()
+    charecters_returned_translator = models.IntegerField()
+    charecters_sent_detect = models.IntegerField()
+    audio_enabled = models.BooleanField(default = True)
+    media_enabled = models.BooleanField(default = True)
+    characters_sent_azure_voice=models.IntegerField(default=0)
+    voiced_quote_lang=models.CharField(max_length=10)
+    audio_found_in_db=models.BooleanField(default = False)
+    image_found_in_db=models.BooleanField(default = False)
+
+    def __str__(self):
+        if self.audio_enabled:
+            audio = 'with'
+        else: 
+            audio = 'without'
+        if self.media_enabled:
+            media = 'with'
+        else: 
+            media = 'without'
+        return f"On {self.media_collected_date}, {self.charecters_sent_translator} were sent fortranslation {audio} audio and {media} pictures "
+    
 
 # Create your models here.
