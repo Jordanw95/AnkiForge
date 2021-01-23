@@ -11,3 +11,4 @@ AnkiForge/Site/AnkiForge/AnkiForge/forge/audio
 *.DS_Store
 *.idea
 *.pyc
+.DS_Store

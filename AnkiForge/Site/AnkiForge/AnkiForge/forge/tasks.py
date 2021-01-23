@@ -49,12 +49,14 @@ def make_archivedcards(final_result):
         )
         if final_result['deck__audio_enabled']:
             archived_object.aws_audio_file_path = final_result['aws_audio_file_path']
+            archived_object.local_audio_file_path = final_result['local_file_path']
             archived_object.universal_audio_filename= final_result['universal_audio_filename']
             archived_object.upload_audio_success= final_result['upload_audio_success']
             archived_object.voiced_quote= final_result['voiced_quote']
             archived_object.voiced_quote_lang= final_result['voiced_quote_lang']
         if final_result['deck__images_enabled']:
             archived_object.aws_image_file_path=final_result['aws_image_file_path']
+            archived_object.local_image_file_path = final_result['local_image_filepath']
             archived_object.universal_image_filename=final_result['universal_image_filename']
             archived_object.upload_image_success=final_result['upload_image_success']
             archived_object.image_search_phrase_string=final_result['image_search_phrase_string']

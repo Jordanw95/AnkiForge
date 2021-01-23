@@ -154,6 +154,8 @@ class ArchivedCards(models.Model):
     original_language = models.CharField(max_length=50)
     translated_quote = models.TextField(max_length=300)
     translated_language = models.CharField(max_length=50)
+    local_audio_file_path = models.TextField(max_length=1000, default =None, null = True)
+    local_image_file_path = models.TextField(max_length=1000, default =None, null = True)
     aws_audio_file_path = models.TextField(max_length=1000, default =None, null = True)
     aws_image_file_path= models.TextField(max_length=1000, default =None, null = True)
     universal_audio_filename=models.TextField(max_length=1000, default =None, null=True)

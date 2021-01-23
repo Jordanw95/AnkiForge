@@ -298,10 +298,10 @@ class ImageController():
         self.smartfilter = SmartFilter(quote)
         self.filtered_for_search_quote=self.smartfilter.with_searchable_quote
         self.azure_image = AzureImage(quote)
-        quote = self.azure_image.quote_with_local_filepath
-        print(quote)
-        quote['image_found_in_db'] = False
-        return quote
+        self.quote = self.azure_image.quote_with_local_filepath
+        print(self.quote)
+        self.quote['image_found_in_db'] = False
+        return self.quote
 
     def no_image_required(self, quote):
         quote['upload_image_success']=False
@@ -321,7 +321,7 @@ class AzureImage():
         # print(quote)
         # print("**** WHY DIDNT THIS SEARCH RETURN RESULTS???***")
         self.quote_with_collected_image = self.make_request(quote)
-        self.quote_with_local_filepath = self.download_image(quote)
+        self.quote_with_local_filepath = self.download_image(self.quote_with_collected_image)
         print(self.quote_with_local_filepath)
 
     def make_request(self, quote):
@@ -329,7 +329,7 @@ class AzureImage():
         self.params = {
             "q": self.search_term,
             "license": "public", 
-            "imageType":"photo",
+            # "imageType":"photo",
             "size":"Large",
             "maxWidth":"800",
             "maxHeight":"800",
@@ -342,9 +342,9 @@ class AzureImage():
         self.search_results=self.response.json()
         # Retrieve the value that contains all image results and info
         self.value = self.search_results['value']
-        print(self.value)
         # Save the first image results url path
         quote['retrieved_image_url']= self.value[0]['contentUrl']
+        quote['received_image_filetype'] = self.value[0]['encodingFormat']
         return quote
 
     def download_image(self, quote):
@@ -362,8 +362,14 @@ class AzureImage():
     
     def create_universal_image_filename(self, quote):
         self.hashed_quote = hash(quote['image_search_phrase_string'])
+        # this may cuase errors, may want to look for only certain filetypes and use them, see as and when you get errors further through testing
+        encoding_formats={
+            'jpeg':'jpg',
+            'png':'png',
+            'bmp' : 'bmp',
+        }
         # Need to address filetype properly at some point.
-        quote['universal_image_filename'] = f"{self.hashed_quote}.jpg"
+        quote['universal_image_filename'] = f"{self.hashed_quote}.{encoding_formats[quote['received_image_filetype']]}"
         return quote
 
 
