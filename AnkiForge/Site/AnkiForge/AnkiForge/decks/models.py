@@ -52,6 +52,7 @@ class CardModels(models.Model):
                                 })
     def __str__(self):
         return self.model_name
+
 class UserDecks(models.Model):
     NATIVE_LANG_CHOICES = (
         ('en', 'English'),

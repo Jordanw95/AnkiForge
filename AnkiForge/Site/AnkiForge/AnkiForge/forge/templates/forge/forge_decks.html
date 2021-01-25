@@ -1,0 +1,81 @@
+{% extends 'main_entrance/base.html' %}
+
+{% block content %}
+{% comment %} SIDE MENU {% endcomment %}
+<div class="row">
+    <div class="col-2">    
+        {% include 'forge/base.html' %}
+        <br>
+        <div class = "jumbotron">
+            <h4> Your decks </h4>
+            <div class = "list-group">
+                {% for deck in userdecks %}
+                    <a class = "list-item" href = "{% url 'forge:forge_forge_decks' pk=deck.id %}">{{ deck.ankiforge_deck_name }}</a>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    <div class = "col">    
+        {% comment %} All page content here {% endcomment %}
+    
+        {% comment %} <div class= "container">
+            <div class="jumbotron">
+                <h1> Welcome to Forge</h1>
+                <hr>
+                <p class="lead">You should see a table of all cards not completed for this dek here. The current deck is {{ deck_name }} </p>
+                {% for card in  current_decks_cards %}
+                    <p> {{ card.incoming_quote }}</p>
+                {% endfor %}
+            </div>
+        </div> {% endcomment %}
+
+        <div class = "row">
+            <div class="container">
+                <div class="table-responsive">
+                    <div class="table100 ver1 m-b-20">
+                        <div class="table100-head">
+                            <table>
+                                <thead class="thead-dark">
+                                    <tr class="row100 head">
+                                        <th class="cell100 column1" style="width: 40%">Quote Received</th>
+                                        <th class="cell100 column2" style="width: 40%">Translated quote</th>
+                                        <th class="cell100 column3" style="width: 10%">Audio</th>
+                                        <th class="cell100 column4" style="width: 10%">Image</th>
+                                    </tr>
+                                </thead>
+                            </table>
+                        </div>
+                        <div class="table100-body js-pscroll">
+                            <table>
+                                <tbody>
+                                {% for card in current_decks_cards %}
+                                    {% if card.archived_card.original_quote %}
+                                        <tr class="row100 body">
+                                            <td class="cell100 column1" style="width: 40%">{{ card.archived_card.original_quote }}</td>
+                                            <td class="cell100 column2" style="width: 40%">{{ card.archived_card.translated_quote }}</td>
+                                            <td class="cell100 column3" style="width: 10%">{{ card.archived_card.upload_audio_success }}</td>
+                                            <td class="cell100 column4" style="width: 10%">{{ card.archived_card.upload_image_success }}</td>
+                                        </tr>
+                                    {% endif %}
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class = "row">
+            <div class="container">
+                <div class="d-flex justify-content-center">
+                    <form action="" method = "post">
+                    {% comment %} <a class="btn btn-default" href="{% url 'post_publish' pk=post.pk %}">Publish</a> {% endcomment %}
+                    <a type="button" class="btn btn-success" href="{% url 'forge:forge_forge_action' pk=current_deck.pk %}">Forge</a>
+                     {% comment %} href="{% url 'post_publish' current_deck %}" {% endcomment %}
+                    </form>
+                </div>
+            </div>
+        </div> 
+    </div>
+</div>
+{% endblock content %}
