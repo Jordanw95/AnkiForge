@@ -8,6 +8,8 @@ logger = get_task_logger(__name__)
 
 # Potentially change this to async task where can send query as argument (maybe even dict it first).
 #  NEED TO LOOK INTO HOW THIS WILL WORK WITH MULTIPLE WORKERS
+
+"""MEDIA COLLECT ON INVOMCING CARD SAVE"""
 @shared_task(name='translate_and_archive')
 def translate_and_archive(new_item):
     quotes = IncomingCards.readyforprocess_objects.filter(id=new_item).values(
@@ -71,7 +73,7 @@ def update_incomingcards(final_result, archived_object):
         updated_quote.archived_card = archived_object
         updated_quote.save()
         return updated_quote
-
+ 
 def make_mediatransactions(final_result, updated_quote):
         transaction_object = MediaTransactions( 
             incoming_card = updated_quote,
@@ -92,19 +94,8 @@ def make_mediatransactions(final_result, updated_quote):
             transaction_object.image_found_in_db=final_result['image_found_in_db']
         transaction_object.save()
 
-# def make_mediatransaction_found_in_db(final_result, updated_quote, archived_object):
-#         transaction_object = MediaTransactions( 
-#             incoming_card = updated_quote,
-#             charecters_sent_translator = len(final_result['incoming_quote']),
-#             charecters_returned_translator = len(final_result['translated_quote']),
-#             charecters_sent_detect = len(final_result['detection_quote']),
-#             audio_enabled = final_result['deck__audio_enabled'],
-#             media_enabled =final_result['deck__images_enabled'],
-#         )
-#         if final_result['deck__audio_enabled']:
-#             transaction_object.voiced_quote_lang=final_result['voiced_quote_lang']
-#             transaction_object.audio_found_in_db=final_result['audio_found_in_db']
-#             transaction_object.characters_sent_azure_voice= len(final_result['voiced_quote'])
-#         if final_result['deck__images_enabled']:
-#             transaction_object.image_found_in_db=final_result['image_found_in_db']
-#         transaction_object.save()
+""" FORGING DECKS TASK """
+@shared_task(name='forge_deck')
+def forge_deck(deck, user):
+    deck_to_forge = IncomingCards.readyforforge.filter(deck = deck, user = user)
+    print(deck_to_forge)

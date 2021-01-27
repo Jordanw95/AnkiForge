@@ -181,6 +181,13 @@ class ReadyForProcess(models.Manager):
     def get_queryset(self):
         return super().get_queryset().filter(ready_for_archive =True, submitted_to_archive = False)
 
+"""GET QUOTES READY FOR FORGE"""
+class ReadyForForge(models.Manager):
+    def get_queryset(self):
+        return super().get_queryset().filter(
+            submitted_to_archive=True, 
+            deck_made=False
+        )
 class IncomingCards(models.Model):
     
 
@@ -200,6 +207,7 @@ class IncomingCards(models.Model):
     # Manager instances
     objects = models.Manager()
     readyforprocess_objects = ReadyForProcess()
+    readyforforge = ReadyForForge()
 
     # Charging
     def calc_cost(self):

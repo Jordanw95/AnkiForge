@@ -12,6 +12,7 @@ from rest_framework.response import Response
 from forge.tasks import translate_and_archive
 from django.shortcuts import get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
+import celery
 
 class ForgeIndexView(LoginRequiredMixin, TemplateView):
     login_url = 'main_entrance:login'
@@ -82,7 +83,7 @@ class ForgeDecksList(LoginRequiredMixin, ListView):
     def get_queryset(self):
         self.current_deck = get_object_or_404(UserDecks, id=self.kwargs['pk'], user=self.request.user)
         self.deck_name = self.current_deck.ankiforge_deck_name
-        self.current_decks_cards = IncomingCards.objects.filter(deck=self.current_deck)
+        self.current_decks_cards = IncomingCards.readyforforge.filter(deck=self.current_deck)
         return UserDecks.objects.filter(user=self.request.user)
 
     def get_context_data(self, **kwargs):
@@ -96,10 +97,15 @@ class ForgeDecksList(LoginRequiredMixin, ListView):
 
 @login_required
 def forge_action(request, pk):
-    current_deck = get_object_or_404(UserDecks, id=pk, user=request.user)
-    current_decks_cards = IncomingCards.objects.filter(deck=current_deck)
-    for card in current_decks_cards:
-        print(card.incoming_quote)
+    # current_deck = get_object_or_404(UserDecks, id=pk, user=request.user)
+    current_decks_cards = IncomingCards.readyforforge.filter(deck=pk, user =request.user)
+    user = request.user
+    # Check if there are actually any cards to make
+    if current_decks_cards.exists():
+        celery.current_app.send_task('forge_deck', (pk, user.id))
+        print("THERE ARE SOME CARDS TO BE MADE IN THIS DECK, TASK SENT")
+    else: 
+        print("THERE ARE NO CARDS TO BE MADE IN THIS DECK")
     return redirect('main_entrance:index')
 
 

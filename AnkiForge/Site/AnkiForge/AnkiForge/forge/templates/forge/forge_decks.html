@@ -49,14 +49,14 @@
                             <table>
                                 <tbody>
                                 {% for card in current_decks_cards %}
-                                    {% if card.archived_card.original_quote %}
+                                    {% comment %} {% if card.archived_card.original_quote %} {% endcomment %}
                                         <tr class="row100 body">
                                             <td class="cell100 column1" style="width: 40%">{{ card.archived_card.original_quote }}</td>
                                             <td class="cell100 column2" style="width: 40%">{{ card.archived_card.translated_quote }}</td>
                                             <td class="cell100 column3" style="width: 10%">{{ card.archived_card.upload_audio_success }}</td>
                                             <td class="cell100 column4" style="width: 10%">{{ card.archived_card.upload_image_success }}</td>
                                         </tr>
-                                    {% endif %}
+                                    {% comment %} {% endif %} {% endcomment %}
                                 {% endfor %}
                                 </tbody>
                             </table>

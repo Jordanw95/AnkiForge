@@ -443,7 +443,7 @@ class UploadS3Image():
         try:
             self.s3.upload_file(quote['local_image_filepath'], os.environ['AWS_STORAGE_BUCKET_NAME'], quote['aws_image_file_path'])
             quote['upload_image_success'] = True
-            print('*IMAGE UPLOADED line 394*')
+            print('*IMAGE UPLOADED*')
         except FileNotFoundError:
             print("The file was not found")
             quote['upload_audio_success'] = False
