@@ -43,10 +43,10 @@ services:
       - db
       - broker
   broker:
-    image: redis:alpine
+    image: rabbitmq:3
     env_file: *envfile
     ports: 
-      - 6379:6379
+      - 5672:5672
 
 
 

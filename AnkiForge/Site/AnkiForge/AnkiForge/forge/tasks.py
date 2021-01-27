@@ -3,6 +3,9 @@ from decks.models import IncomingCards, ArchivedCards, MediaTransactions
 from celery.decorators import task
 from celery.utils.log import get_task_logger
 from forge.MediaCollect import Controller
+from celery_progress.backend import ProgressRecorder
+import time
+
 
 logger = get_task_logger(__name__)
 
@@ -95,7 +98,17 @@ def make_mediatransactions(final_result, updated_quote):
         transaction_object.save()
 
 """ FORGING DECKS TASK """
-@shared_task(name='forge_deck')
-def forge_deck(deck, user):
-    deck_to_forge = IncomingCards.readyforforge.filter(deck = deck, user = user)
-    print(deck_to_forge)
+# @shared_task(name='forge_deck')
+# def forge_deck(deck, user):
+#     deck_to_forge = IncomingCards.readyforforge.filter(deck = deck, user = user)
+#     print(deck_to_forge)
+
+@shared_task(bind=True, name='forge_deck')
+def forge_deck(self, seconds, pk):
+    progress_recorder = ProgressRecorder(self)
+    result = 0
+    for i in range(seconds):
+        time.sleep(1)
+        result += i
+        progress_recorder.set_progress(i + 1, 100)
+    return pk

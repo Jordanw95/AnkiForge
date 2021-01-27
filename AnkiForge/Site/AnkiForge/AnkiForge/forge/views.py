@@ -95,19 +95,24 @@ class ForgeDecksList(LoginRequiredMixin, ListView):
         context['current_deck'] = self.current_deck
         return context
 
-@login_required
-def forge_action(request, pk):
-    # current_deck = get_object_or_404(UserDecks, id=pk, user=request.user)
-    current_decks_cards = IncomingCards.readyforforge.filter(deck=pk, user =request.user)
-    user = request.user
-    # Check if there are actually any cards to make
-    if current_decks_cards.exists():
-        celery.current_app.send_task('forge_deck', (pk, user.id))
-        print("THERE ARE SOME CARDS TO BE MADE IN THIS DECK, TASK SENT")
-    else: 
-        print("THERE ARE NO CARDS TO BE MADE IN THIS DECK")
-    return redirect('main_entrance:index')
+# @login_required
+# def forge_action(request, pk):
+#     # current_deck = get_object_or_404(UserDecks, id=pk, user=request.user)
+#     current_decks_cards = IncomingCards.readyforforge.filter(deck=pk, user =request.user)
+#     user = request.user
+#     # Check if there are actually any cards to make
+#     if current_decks_cards.exists():
+#         celery.current_app.send_task('forge_deck', (pk, user.id))
+#         print("THERE ARE SOME CARDS TO BE MADE IN THIS DECK, TASK SENT")
+#     else: 
+#         print("THERE ARE NO CARDS TO BE MADE IN THIS DECK")
+#     return redirect('main_entrance:index')
 
+def forge_action(request, pk):
+    print("1")
+    result = celery.current_app.send_task('forge_deck', (100, pk))
+    print("2")
+    return render(request, 'forge/display_progress.html', context={'task_id': result.task_id})
 
 # class ForgeDecksList(ListView):
 

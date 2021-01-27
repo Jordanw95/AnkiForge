@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'rest_framework.authtoken',
     'rest_auth',
     'storages',
+    'celery_progress',
     'main_entrance',
     'crispy_forms',
     'membership',
@@ -138,8 +139,10 @@ DATABASES = {
 # 
 
 CELERY_BROKER_URL = os.environ['CELERY_BROKER']
+CELERY_RESULT_BACKEND = os.environ['CELERY_BROKER']
 CELERY = {
-    'BROKER_URL': os.environ['CELERY_BROKER'],
+    'CELERY_BROKER_URL': os.environ['CELERY_BROKER'],
+    'CELERY_RESULT_BACKEND' : os.environ['CELERY_BROKER'],
     'CELERY_IMPORTS': ('forge.tasks', ),
     'CELERY_TASK_SERIALIZER': 'json',
     'CELERY_RESULT_SERIALIZER': 'json',

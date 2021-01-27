@@ -14,8 +14,9 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path, include
+from django.urls import path, include, re_path
 from membership.models import Membership
+
 
 """ Url Views for initial start, pre DB entry"""
 # This checks if models have been migrated and data ha been input yet, and prevents
@@ -44,6 +45,7 @@ from membership.models import Membership
 # else:
 urlpatterns = [
     path('admin/', admin.site.urls),
+    re_path(r'^celery-progress/', include('celery_progress.urls')),
     path('', include('main_entrance.urls')),
     path('membership/', include('membership.urls')),
     path('decks/', include('decks.urls')),
