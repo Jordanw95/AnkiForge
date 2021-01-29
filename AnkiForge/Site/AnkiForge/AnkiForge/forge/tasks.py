@@ -5,6 +5,7 @@ from celery.utils.log import get_task_logger
 from forge.MediaCollect import Controller
 from celery_progress.backend import ProgressRecorder
 import time
+import genanki
 
 
 logger = get_task_logger(__name__)
@@ -108,19 +109,20 @@ def forge_deck(deck, user):
         'archived_card__translated_language',
         'deck__learnt_lang', 'deck__native_lang',
         'deck__images_enabled', 'deck__audio_enabled',
+        'deck__model_code', 'deck__deck_id', 'deck__anki_deck_name',
         'archived_card__local_audio_file_path',
         'archived_card__local_image_file_path',
         'archived_card__upload_audio_success',
         'archived_card__upload_image_success',
         'archived_card__aws_audio_file_path',
         'archived_card__aws_image_file_path',
+        'archived_card__universal_audio_filename',
+        'archived_card__universal_image_filename',
     )
     print(cards.first())
     cards_assigned_language = assign_language(cards)
-    if cards_assigned_language:
-        print(cards)
-    else:
-        pass
+    deck_made = make_deck(cards_assigned_language)
+    
 
 
 
@@ -138,14 +140,78 @@ def assign_language(cards):
     # handed a iterable query set
     processed_cards = []
     for card in cards:
-        if card['deck__learnt_lang'][:2]==card['archived_card__original_language']:
+        if card['deck__learnt_lang'][:2]==card['archived_card__original_language'][:2]:
             card['learnt_quote'] = card['archived_card__original_quote']
             card['native_quote']= card['archived_card__translated_quote']
             processed_cards.append(card)
-        elif card['deck__learnt_lang'][:2]==card['archived_card__translated_language']:
+        elif card['deck__learnt_lang'][:2]==card['archived_card__translated_language'][:2]:
             card['learnt_quote'] = card['archived_card__translated_quote']
             card['native_quote']= card['archived_card__original_quote']
             processed_cards.append(card)
         else: 
             print("*** FAILED TO ASSIGN LANGUAGE ***")
     return processed_cards
+
+def make_deck(cards):
+    if not cards:
+        pass
+    else:
+        deck_media_files = []
+        deck = genanki.Deck(
+            cards[0]['deck__deck_id'],
+            cards[0]['deck__anki_deck_name']
+        )
+        model = genanki.Model(
+            cards[0]['deck__deck_id'],
+            'Basic (and reversed card)',
+            css="""
+                .card {
+                font-family: arial;
+                font-size: 20px;
+                text-align: center;
+                color: black;
+                background-color: white;
+                }
+                .media {
+                margin: 2px;
+                }
+            """,
+            fields=[
+                {'name': 'Question'},
+                {'name': 'Answer'},
+                {'name': 'MyMedia'},
+                {'name': 'MyAudio'}, 
+            ],
+            templates=[
+                {
+                    'name': 'Card 1',
+                    'qfmt': '{{Question}}<br>{{MyMedia}}',
+                    'afmt': '{{FrontSide}}<hr id="answer">{{Answer}}<br>{{MyAudio}}',
+                }, 
+                {
+                    'name': 'Card 3',
+                    'qfmt': '{{MyAudio}}',
+                    'afmt': '{{FrontSide}}<hr id="answer">{{Answer}}<br>{{Question}}<br>{{MyMedia}}',
+                },           
+            ])
+        for card in cards:
+            # (filepath, filename)
+            # [[x['input'], x['translatedText']] for x in results]
+            # first one is english native second is learnt
+            deck_media_files.append(card['archived_card__local_audio_file_path'])
+            deck_media_files.append(card['archived_card__local_image_file_path'])
+            image_filename = card['archived_card__universal_image_filename']
+            audio_filename = card['archived_card__universal_audio_filename']
+            note = genanki.Note(
+                model = model,
+                fields = [
+                    f'{card["native_quote"]}',
+                    f'{card["learnt_quote"]}',
+                    f'<img src="{image_filename}">',
+                    f'[sound:{audio_filename}]'
+                ]
+            )
+            deck.add_note(note)
+        package = genanki.Package(deck)
+        package.media_files = deck_media_files
+        package.write_to_file('forge/forgeddecks/test.apkg')
