@@ -8,11 +8,13 @@
     </div>
     <div class="col">
         {% comment %} All page content here {% endcomment %}
-        <div class = "jumbotron">
-            <h1 class ="text-center">Create a New Deck</h1>
-            <p class ="lead text-center"> Fill in the information below </p>
-            <hr>
-            {% crispy form %}
+        <div class = "container">
+            <div class = "jumbotron">
+                <h1 class ="text-center">Create a New Deck</h1>
+                <p class ="lead text-center"> Fill in the information below </p>
+                <hr>
+                {% crispy form %}
+            </div>
         </div>
 
         {% comment %} This is the end of content {% endcomment %}

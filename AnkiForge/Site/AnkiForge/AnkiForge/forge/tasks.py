@@ -98,17 +98,54 @@ def make_mediatransactions(final_result, updated_quote):
         transaction_object.save()
 
 """ FORGING DECKS TASK """
-# @shared_task(name='forge_deck')
-# def forge_deck(deck, user):
-#     deck_to_forge = IncomingCards.readyforforge.filter(deck = deck, user = user)
-#     print(deck_to_forge)
+@shared_task(name='forge_deck')
+def forge_deck(deck, user):
+    deck_to_forge = IncomingCards.readyforforge.filter(deck = deck, user = user)
+    cards = deck_to_forge.values(
+        'id', 'archived_card__original_quote',
+        'archived_card__original_language',
+        'archived_card__translated_quote',
+        'archived_card__translated_language',
+        'deck__learnt_lang', 'deck__native_lang',
+        'deck__images_enabled', 'deck__audio_enabled',
+        'archived_card__local_audio_file_path',
+        'archived_card__local_image_file_path',
+        'archived_card__upload_audio_success',
+        'archived_card__upload_image_success',
+        'archived_card__aws_audio_file_path',
+        'archived_card__aws_image_file_path',
+    )
+    print(cards.first())
+    cards_assigned_language = assign_language(cards)
+    if cards_assigned_language:
+        print(cards)
+    else:
+        pass
 
-@shared_task(bind=True, name='forge_deck')
-def forge_deck(self, seconds, pk):
-    progress_recorder = ProgressRecorder(self)
-    result = 0
-    for i in range(seconds):
-        time.sleep(1)
-        result += i
-        progress_recorder.set_progress(i + 1, 100)
-    return pk
+
+
+# @shared_task(bind=True, name='forge_deck')
+# def forge_deck(self, seconds, pk):
+#     progress_recorder = ProgressRecorder(self)
+#     result = 0
+#     for i in range(seconds):
+#         time.sleep(1)
+#         result += i
+#         progress_recorder.set_progress(i + 1, 100)
+#     return pk
+
+def assign_language(cards):
+    # handed a iterable query set
+    processed_cards = []
+    for card in cards:
+        if card['deck__learnt_lang'][:2]==card['archived_card__original_language']:
+            card['learnt_quote'] = card['archived_card__original_quote']
+            card['native_quote']= card['archived_card__translated_quote']
+            processed_cards.append(card)
+        elif card['deck__learnt_lang'][:2]==card['archived_card__translated_language']:
+            card['learnt_quote'] = card['archived_card__translated_quote']
+            card['native_quote']= card['archived_card__original_quote']
+            processed_cards.append(card)
+        else: 
+            print("*** FAILED TO ASSIGN LANGUAGE ***")
+    return processed_cards

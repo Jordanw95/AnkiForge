@@ -27,6 +27,7 @@ class Controller():
     def __init__(self, quote):
         # At this point we are handed quote with a 
         self.quote = quote
+        self.quote['incoming_quote'] = quote['incoming_quote'].lower()
         # Here we translate the quote
         self.T = Translate(self.quote)
         self.translated_result = self.T.translation_result
@@ -48,6 +49,7 @@ class Controller():
             self.voicecontroller = VoiceController(self.translated_and_searched_result)
             self.voice_processed = self.voicecontroller.voice_processed_quote
             # Then send to image
+            print("**** QUOTE BEFORE SENT TO IMAGE CONTROLLER***")
             self.imagecontroller = ImageController(self.voice_processed)
             self.image_processed = self.imagecontroller.final_image_processed_quote
             # after
@@ -207,7 +209,6 @@ class AzureVoice():
         # self.quote_with_codes = self.set_config(quote)
         self.quote_with_xml_file = self.create_xml(quote)
         self.finished_voiced_quote = self.request_voice(self.quote_with_xml_file)
-        # print(self.finished_voiced_quote)
     
 
     def create_xml(self, quote):
@@ -297,9 +298,8 @@ class ImageController():
     def collect_image(self, quote):
         self.smartfilter = SmartFilter(quote)
         self.filtered_for_search_quote=self.smartfilter.with_searchable_quote
-        self.azure_image = AzureImage(quote)
+        self.azure_image = AzureImage(self.filtered_for_search_quote)
         self.quote = self.azure_image.quote_with_local_filepath
-        print(self.quote)
         self.quote['image_found_in_db'] = False
         return self.quote
 
@@ -317,11 +317,9 @@ class AzureImage():
     
     def __init__(self, quote):
         self.azure_key = os.environ['AZURE_SEARCH_KEY']
-        # print("****CHECKING ERROR***")
-        # print(quote)
-        # print("**** WHY DIDNT THIS SEARCH RETURN RESULTS???***")
         self.quote_with_collected_image = self.make_request(quote)
-        self.quote_with_local_filepath = self.download_image(self.quote_with_collected_image)
+        print(self.quote_with_collected_image)
+        self.quote_with_local_filepath = self.download_image(self.quote_with_collected_image, 0)
         print(self.quote_with_local_filepath)
 
     def make_request(self, quote):
@@ -329,7 +327,7 @@ class AzureImage():
         self.params = {
             "q": self.search_term,
             "license": "public", 
-            # "imageType":"photo",
+            "imageType":"photo",
             "size":"Large",
             "maxWidth":"800",
             "maxHeight":"800",
@@ -343,24 +341,43 @@ class AzureImage():
         # Retrieve the value that contains all image results and info
         self.value = self.search_results['value']
         # Save the first image results url path
-        quote['retrieved_image_url']= self.value[0]['contentUrl']
-        quote['received_image_filetype'] = self.value[0]['encodingFormat']
+        self.urls_list = []
+        for object in self.value:
+            image_url = object['contentUrl']
+            image_filetype = object['encodingFormat']
+            self.urls_list.append({'image_url':image_url, 'image_filetype': image_filetype})
+        quote['image_urls_list'] = self.urls_list
         return quote
 
-    def download_image(self, quote):
-        quote = self.create_universal_image_filename(quote)
-        self.filepath = f"forge/images/{quote['universal_image_filename']}"
-        self.r = requests.get(quote['retrieved_image_url'], stream=True)
-        if self.r.status_code == 200:
-            self.r.raw.decode_content = True
-            print(f'*IMAGE Beginning download to {self.filepath}*')
-            with open(self.filepath, 'wb') as f:
-                shutil.copyfileobj(self.r.raw, f)
-                print('Image downloaded')
-                quote['local_image_filepath'] = self.filepath
-                return quote
+    def download_image(self, quote, attempt):
+        self.links_available = len(quote['image_urls_list'])
+        if attempt > self.links_available:
+            raise Exception("ALL AVAILABLE IMAGE DOWNLOAD LINKS HAVE BEEN ATTEMPTED")
+        else: 
+            quote = self.create_universal_image_filename(quote, attempt)
+            self.filepath = f"forge/images/{quote['universal_image_filename']}"
+            self.r = requests.get(quote['image_urls_list'][attempt]['image_url'], stream=True)
+            # Error appears to be that this specific download link doesn't work, add logic to try multiple
+            print(self.r)
+            if self.r.status_code == 200:
+                print(f'*IMAGE DOWNLOAD ATTEMPT SUCCEEDED ON ATTEMPT {attempt} OF {self.links_available} *')
+                self.r.raw.decode_content = True
+                quote['retrieved_image_url'] = quote['image_urls_list'][attempt]['image_url']
+                print(f'*IMAGE Beginning download to {self.filepath}*')
+                del quote['image_urls_list']
+                with open(self.filepath, 'wb') as f:
+                    shutil.copyfileobj(self.r.raw, f)
+                    print('Image downloaded')
+                    quote['local_image_filepath'] = self.filepath
+                    print(quote)
+                    return(quote)
+            else:
+                print(f'*IMAGE DOWNLOAD ATTEMPT {attempt} OF {self.links_available} FAILED WITH RESPONSE {self.r}*')
+                attempt += 1
+                quote = self.download_image(quote, attempt)
+        return quote
     
-    def create_universal_image_filename(self, quote):
+    def create_universal_image_filename(self, quote, attempt):
         self.hashed_quote = hash(quote['image_search_phrase_string'])
         # this may cuase errors, may want to look for only certain filetypes and use them, see as and when you get errors further through testing
         encoding_formats={
@@ -369,7 +386,7 @@ class AzureImage():
             'bmp' : 'bmp',
         }
         # Need to address filetype properly at some point.
-        quote['universal_image_filename'] = f"{self.hashed_quote}.{encoding_formats[quote['received_image_filetype']]}"
+        quote['universal_image_filename'] = f"{self.hashed_quote}.{encoding_formats[quote['image_urls_list'][attempt]['image_filetype']]}"
         return quote
 
 
@@ -381,6 +398,8 @@ class SmartFilter():
         self.test_length = len(quote['english_quote'].split())
         if self.test_length < 4:
             self.with_searchable_quote = self.small_quote(self.with_english_quote)
+
+
         else:
             self.with_searchable_quote = self.get_searchable(self.with_english_quote)
     
@@ -388,6 +407,7 @@ class SmartFilter():
         quote['image_search_phrase_list']=quote['english_quote'].split()
         quote['image_search_phrase_string']= quote['english_quote']
         return quote
+
     def get_english_quote(self, quote):
         if quote['original_language'] == 'en':
             quote['english_quote'] = quote['incoming_quote']

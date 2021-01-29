@@ -7,13 +7,7 @@
 <script src="{% static 'celery_progress/celery_progress.js' %}"></script>
 <script src="{% static 'tablestyle/vendor/jquery/jquery-3.2.1.min.js' %}"></script>
 <script>
-    // vanilla JS version
-    {% comment %} document.addEventListener("DOMContentLoaded", function () {
-      var progressUrl = "{% url 'celery_progress:task_status' task_id %}";
-      CeleryProgressBar.initProgressBar(progressUrl, {
-          onSuccess: function () { window.location.href = 'www.google.com'; }
-      });
-    }); {% endcomment %}
+    {% comment %} FOR REDIRECT https://github.com/czue/celery-progress/issues/41 {% endcomment %}
     function processSuccess(progressBarElement, progressBarMessageElement, result) {
         // Assuming result contains the model ID
         var model_id = result
