@@ -5,4 +5,6 @@
     <a href="{{ url }}" class="list-group-item list-group-item-action {% if request.path == url %}active{% endif %}">Make a card</a>
     {% url 'forge:forge_forge_decks_index' as url %}
     <a href="{{ url }}" class="list-group-item list-group-item-action {% if request.path == url %}active{% endif %}">Forge a deck</a>
+    {% url 'forge:forge_already_forged_index' as url %}
+    <a href="{{ url }}" class="list-group-item list-group-item-action {% if request.path == url %}active{% endif %}">My forged decks</a>
 </div>

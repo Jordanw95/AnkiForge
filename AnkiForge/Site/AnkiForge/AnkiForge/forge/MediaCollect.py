@@ -8,6 +8,7 @@ from xml.etree import ElementTree
 import string
 import boto3
 from botocore.exceptions import NoCredentialsError
+from botocore.client import Config
 from nltk import word_tokenize, pos_tag
 import requests
 import io
@@ -45,16 +46,16 @@ class Controller():
             self.translated_result = self.set_config(self.translated_result)
             # regardless of outcome of search I need to set media found
             self.translated_and_searched_result = self.search_db(self.translated_result)
-
+            print("**** QUOTE SENT TO VOICE CONTROLLER***")
             self.voicecontroller = VoiceController(self.translated_and_searched_result)
             self.voice_processed = self.voicecontroller.voice_processed_quote
             # Then send to image
-            print("**** QUOTE BEFORE SENT TO IMAGE CONTROLLER***")
+            print("**** QUOTE SENT TO IMAGE CONTROLLER***")
             self.imagecontroller = ImageController(self.voice_processed)
             self.image_processed = self.imagecontroller.final_image_processed_quote
             # after
             self.final_result = self.image_processed
-            print(self.final_result)
+
 
     def set_config(self, quote):
         # Need to collect        
@@ -259,7 +260,13 @@ class AzureVoice():
 class UploadS3Audio():
     
     def __init__(self, quote):
-        self.s3 = boto3.client('s3', aws_access_key_id=os.environ['AWS_ACCESS_KEY_ID'],aws_secret_access_key=os.environ['AWS_SECRET_ACCESS_KEY'])
+        self.s3 = boto3.client('s3',
+            aws_access_key_id=os.environ['AWS_ACCESS_KEY_ID'],
+            aws_secret_access_key=os.environ['AWS_SECRET_ACCESS_KEY'],
+            config=Config(
+                signature_version='s3v4',
+                region_name = 'us-east-2'
+                ))
         # upload to s3
         self.finished_uploaded_quote = self.upload_to_s3(quote)
         # return location 
@@ -318,19 +325,18 @@ class AzureImage():
     def __init__(self, quote):
         self.azure_key = os.environ['AZURE_SEARCH_KEY']
         self.quote_with_collected_image = self.make_request(quote)
-        print(self.quote_with_collected_image)
         self.quote_with_local_filepath = self.download_image(self.quote_with_collected_image, 0)
-        print(self.quote_with_local_filepath)
 
     def make_request(self, quote):
         self.search_term = quote['image_search_phrase_string']
+        # setting "imageType":"photo", seems to make results significantly smaller
         self.params = {
             "q": self.search_term,
-            "license": "public", 
+            # "license": "public",
+            # "size":"Large",
             "imageType":"photo",
-            "size":"Large",
-            "maxWidth":"800",
-            "maxHeight":"800",
+            "maxWidth":"1200",
+            "maxHeight":"1200",
             "aspect": "Square"
             }
         self.headers = {"Ocp-Apim-Subscription-Key" : self.azure_key}
@@ -350,27 +356,43 @@ class AzureImage():
         return quote
 
     def download_image(self, quote, attempt):
-        self.links_available = len(quote['image_urls_list'])
+        self.links_available = len(quote['image_urls_list'])-1
         if attempt > self.links_available:
-            raise Exception("ALL AVAILABLE IMAGE DOWNLOAD LINKS HAVE BEEN ATTEMPTED")
+            print(f'SEARCHED WITH STRING {quote["image_search_phrase_string"]}')
+            raise Exception(f"ALL AVAILABLE {self.links_available} IMAGE DOWNLOAD LINKS HAVE BEEN ATTEMPTED")
         else: 
-            quote = self.create_universal_image_filename(quote, attempt)
+            try:
+                quote = self.create_universal_image_filename(quote, attempt)
+            except:
+                print("*CREATE FILENAME FAILED, WEIRD FILETYPE?*")
+                attempt +=1
+                quote = self.download_image(quote, attempt)
             self.filepath = f"forge/images/{quote['universal_image_filename']}"
-            self.r = requests.get(quote['image_urls_list'][attempt]['image_url'], stream=True)
+            try:
+                self.r = requests.get(quote['image_urls_list'][attempt]['image_url'], stream=True)
+            except:
+                print(f"ERROR WITH GET REQUEST ON ATTMEPT {attempt} TRYING AGAIN ")
+                attempt +=1
+                quote = self.download_image(quote, attempt)                
             # Error appears to be that this specific download link doesn't work, add logic to try multiple
-            print(self.r)
             if self.r.status_code == 200:
                 print(f'*IMAGE DOWNLOAD ATTEMPT SUCCEEDED ON ATTEMPT {attempt} OF {self.links_available} *')
                 self.r.raw.decode_content = True
                 quote['retrieved_image_url'] = quote['image_urls_list'][attempt]['image_url']
                 print(f'*IMAGE Beginning download to {self.filepath}*')
-                del quote['image_urls_list']
                 with open(self.filepath, 'wb') as f:
                     shutil.copyfileobj(self.r.raw, f)
                     print('Image downloaded')
                     quote['local_image_filepath'] = self.filepath
-                    print(quote)
-                    return(quote)
+                # Check its not an empty image
+                if os.stat(quote['local_image_filepath']).st_size > 5:
+                    print(f'*IMAGE DOWNLOADED ON ATTEMPT {attempt} IS NOT AN EMPTY FILE*')
+                    return quote
+                # Yet to see if this really works, seems an uncommon error
+                else:
+                    print(f"*IMAGE DOWNLOADED ON ATTEMPT {attempt} APPEARS TO BE AN AN EMPTY FILE, ATTEMPTING AGAIN*")
+                    attempt +=1
+                    quote = self.download_image(quote, attempt)
             else:
                 print(f'*IMAGE DOWNLOAD ATTEMPT {attempt} OF {self.links_available} FAILED WITH RESPONSE {self.r}*')
                 attempt += 1
@@ -384,6 +406,7 @@ class AzureImage():
             'jpeg':'jpg',
             'png':'png',
             'bmp' : 'bmp',
+            'gif' : 'gif',
         }
         # Need to address filetype properly at some point.
         quote['universal_image_filename'] = f"{self.hashed_quote}.{encoding_formats[quote['image_urls_list'][attempt]['image_filetype']]}"
@@ -397,15 +420,21 @@ class SmartFilter():
         self.with_english_quote = self.get_english_quote(quote)
         self.test_length = len(quote['english_quote'].split())
         if self.test_length < 4:
+            # before attempting incoming quote search
             self.with_searchable_quote = self.small_quote(self.with_english_quote)
-
+            # Might be better to search small phrases with incoming quote directly
 
         else:
             self.with_searchable_quote = self.get_searchable(self.with_english_quote)
     
     def small_quote(self, quote):
+        # Previous method searched with english
         quote['image_search_phrase_list']=quote['english_quote'].split()
         quote['image_search_phrase_string']= quote['english_quote']
+        # Might be better to search small phrases with incoming quote directly
+        # This caused no results with bombona
+        # quote['image_search_phrase_list']=quote['incoming_quote'].split()
+        # quote['image_search_phrase_string']= quote['incoming_quote']
         return quote
 
     def get_english_quote(self, quote):
@@ -450,7 +479,13 @@ class SmartFilter():
 class UploadS3Image():
     
     def __init__(self, quote):
-        self.s3 = boto3.client('s3', aws_access_key_id=os.environ['AWS_ACCESS_KEY_ID'],aws_secret_access_key=os.environ['AWS_SECRET_ACCESS_KEY'])
+        self.s3 = boto3.client('s3',
+            aws_access_key_id=os.environ['AWS_ACCESS_KEY_ID'],
+            aws_secret_access_key=os.environ['AWS_SECRET_ACCESS_KEY'],
+            config=Config(
+                signature_version='s3v4',
+                region_name = 'us-east-2'
+                ))
         # upload to s3
         self.finished_upload_image = self.upload_image_to_s3(quote)
         # return location 

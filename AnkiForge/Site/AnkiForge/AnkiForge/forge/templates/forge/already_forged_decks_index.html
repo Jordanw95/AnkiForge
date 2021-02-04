@@ -1,0 +1,35 @@
+{% extends 'main_entrance/base.html' %}
+
+{% block content %}
+{% comment %} SIDE MENU {% endcomment %}
+<div class="row">
+    <div class="col-2">    
+        {% include 'forge/base.html' %}
+        <br>
+        <div class = "jumbotron">
+            <h4> Your decks </h4>
+            <div class = "list-group">
+                {% for deck in userdecks %}
+                    <a class = "list-item" href = "{% url 'forge:forge_already_forged_list' pk=deck.id %}">{{ deck.ankiforge_deck_name }}</a>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    <div class = "col">    
+        {% comment %} All page content here {% endcomment %}
+    
+        <div class= "container">
+            <div class="jumbotron">
+                <h1> Your Forged Decks</h1>
+                <hr>
+                <p class="lead"> The decks you have previously forged into files are stored here.
+                 Select one of your decks on the left to view the files available for it. </p>
+            </div>
+        </div>
+    
+        
+        
+        {% comment %} This is the end of content {% endcomment %}
+    </div>
+</div>
+{% endblock content %}

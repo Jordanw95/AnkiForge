@@ -12,5 +12,8 @@ urlpatterns = [
     # path('forgedecks', views.ForgeDecks.as_view(), name = 'forge_forge_decks'),
     path('forgedecks/', views.ForgeDecksIndex.as_view(), name = 'forge_forge_decks_index'),
     path('forgedecks/<int:pk>/', views.ForgeDecksList.as_view(), name='forge_forge_decks'),
-    path('forgedecks/<int:pk>/forge/', views.forge_action, name = 'forge_forge_action')
+    path('forgedecks/<int:pk>/forge/', views.forge_action, name = 'forge_forge_action'),
+    path('myforgeddecks/', views.AlreadyForgedDecksIndex.as_view(), name = 'forge_already_forged_index'),
+    path('myforgeddecks/<int:pk>/', views.AlreadyForgedDecksList.as_view(), name = 'forge_already_forged_list'),
+    path('myforgeddecks/download/<int:pk>', views.get_download, name = 'forge_already_forged_download')
 ]

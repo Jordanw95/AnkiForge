@@ -1,18 +1,36 @@
+{% extends 'main_entrance/base.html' %}
 {% load static %}
 
-<div class='progress-wrapper'>
-  <div id='progress-bar' class='progress-bar' style="background-color: #68a9ef; width: 0%;">&nbsp;</div>
-</div>
-<div id="progress-bar-message">Waiting for progress to start...</div>
+{% block content %}
+{% comment %} SIDE MENU {% endcomment %}
+<div class="row">
+    <div class="col-2">    
+        {% include 'forge/base.html' %}
+    </div>
+    <div class = "col">  
+        <div class = "container">
+            <div class = "jumbotron">
+            <h1>Your deck is forging</h1>
+            <br>
+            <hr>
+            <p class="lead"> Your download should automatically pop up once the process is complete, if not. Please navigate to my forged decks to collect and download. </p>
+            <br>
+            <div class="progress">
+                <div id= 'progress-bar' class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" aria-valuenow="75" aria-valuemin="0" aria-valuemax="100" style="width: 75%"></div>
+            </div>
+            <div id="progress-bar-message">Waiting for progress to start...</div>
+            </div>
+        </div>
 <script src="{% static 'celery_progress/celery_progress.js' %}"></script>
 <script src="{% static 'tablestyle/vendor/jquery/jquery-3.2.1.min.js' %}"></script>
 <script>
     {% comment %} FOR REDIRECT https://github.com/czue/celery-progress/issues/41 {% endcomment %}
     function processSuccess(progressBarElement, progressBarMessageElement, result) {
         // Assuming result contains the model ID
-        var model_id = result
+        var download_link = result
         // Build Success URL (replace 'namespace' with your own)
-        var success_url = "{% url 'forge:forge_forge_decks' pk=123456789 %}".replace(/123456789/, model_id);
+        // var success_url = "{% url 'forge:forge_forge_decks' pk=123456789 %}".replace(/123456789/, model_id);
+        var success_url = download_link
         // Redirect to URL
         window.location.replace(success_url)
     }
@@ -24,3 +42,4 @@
         })
     });
 </script>
+{% endblock content %}

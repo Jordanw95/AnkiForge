@@ -1,11 +1,17 @@
 from celery import shared_task
-from decks.models import IncomingCards, ArchivedCards, MediaTransactions
+from decks.models import IncomingCards, ArchivedCards, ForgedDecks, MediaTransactions, CardModels, UserDecks
 from celery.decorators import task
 from celery.utils.log import get_task_logger
 from forge.MediaCollect import Controller
 from celery_progress.backend import ProgressRecorder
 import time
 import genanki
+from forge.DeckModels import *
+import boto3
+from botocore.exceptions import NoCredentialsError, ClientError
+import os
+import logging
+from botocore.client import Config
 
 
 logger = get_task_logger(__name__)
@@ -99,17 +105,23 @@ def make_mediatransactions(final_result, updated_quote):
         transaction_object.save()
 
 """ FORGING DECKS TASK """
-@shared_task(name='forge_deck')
-def forge_deck(deck, user):
+
+
+@shared_task(bind=True, name='forge_deck')
+def forge_deck(self, deck, user):
+    progress_recorder =ProgressRecorder(self)
+    progress = 0
     deck_to_forge = IncomingCards.readyforforge.filter(deck = deck, user = user)
     cards = deck_to_forge.values(
         'id', 'archived_card__original_quote',
+        'user',
         'archived_card__original_language',
         'archived_card__translated_quote',
         'archived_card__translated_language',
+        'deck__id',
         'deck__learnt_lang', 'deck__native_lang',
         'deck__images_enabled', 'deck__audio_enabled',
-        'deck__model_code', 'deck__deck_id', 'deck__anki_deck_name',
+        'deck__model_code__model_name', 'deck__deck_id', 'deck__anki_deck_name',
         'archived_card__local_audio_file_path',
         'archived_card__local_image_file_path',
         'archived_card__upload_audio_success',
@@ -119,9 +131,41 @@ def forge_deck(deck, user):
         'archived_card__universal_audio_filename',
         'archived_card__universal_image_filename',
     )
-    print(cards.first())
+    # set progress settings
+    max_progress = 100
+    progress_unit = 20
+    print(cards[0])
+    progress_recorder.set_progress(progress, max_progress)
     cards_assigned_language = assign_language(cards)
-    deck_made = make_deck(cards_assigned_language)
+    deck_made, progress_recorder, progress = make_deck(cards_assigned_language, progress_recorder, progress, max_progress)
+    # set progress after make file
+    progress+=progress_unit
+    progress_recorder.set_progress(progress, max_progress)
+    # set progress after make file
+    s3 = boto3.client('s3',
+        aws_access_key_id=os.environ['AWS_ACCESS_KEY_ID'],
+        aws_secret_access_key=os.environ['AWS_SECRET_ACCESS_KEY'],
+        config=Config(
+            signature_version='s3v4',
+            region_name = 'us-east-2'
+            ))
+    uploaded = upload_deck_to_s3(deck_made, s3)
+    # set progress after upload
+    progress+=progress_unit
+    progress_recorder.set_progress(progress, max_progress)
+    # progress set after upload
+    uploaded_with_download = get_download_link(cards, s3)
+    # set progress after creating link
+    progress+=progress_unit
+    progress_recorder.set_progress(progress, max_progress)
+    # set progress after creating link
+    forged_deck_object = create_forgeddecks(uploaded_with_download)
+    update_incoming_cards_forge(forged_deck_object, uploaded_with_download)
+    # final set progress
+    progress+=progress_unit
+    progress_recorder.set_progress(progress, max_progress)
+    # final set progress
+    return uploaded_with_download[0]['aws_download_link']
     
 
 
@@ -139,6 +183,7 @@ def forge_deck(deck, user):
 def assign_language(cards):
     # handed a iterable query set
     processed_cards = []
+    print(cards[0])
     for card in cards:
         if card['deck__learnt_lang'][:2]==card['archived_card__original_language'][:2]:
             card['learnt_quote'] = card['archived_card__original_quote']
@@ -152,66 +197,163 @@ def assign_language(cards):
             print("*** FAILED TO ASSIGN LANGUAGE ***")
     return processed_cards
 
-def make_deck(cards):
+def make_deck(cards, progress_recorder, progress, max_progress):
     if not cards:
         pass
     else:
+        progress_unit = 20/len(cards)
+        cards = make_deck_filename(cards)
         deck_media_files = []
         deck = genanki.Deck(
             cards[0]['deck__deck_id'],
             cards[0]['deck__anki_deck_name']
         )
+        # little benefit lot of work to be able to retrieve and format model code from db
+        model_instance = convert_instance(cards[0]['deck__model_code__model_name'])
         model = genanki.Model(
             cards[0]['deck__deck_id'],
-            'Basic (and reversed card)',
-            css="""
-                .card {
-                font-family: arial;
-                font-size: 20px;
-                text-align: center;
-                color: black;
-                background-color: white;
-                }
-                .media {
-                margin: 2px;
-                }
-            """,
-            fields=[
-                {'name': 'Question'},
-                {'name': 'Answer'},
-                {'name': 'MyMedia'},
-                {'name': 'MyAudio'}, 
-            ],
-            templates=[
-                {
-                    'name': 'Card 1',
-                    'qfmt': '{{Question}}<br>{{MyMedia}}',
-                    'afmt': '{{FrontSide}}<hr id="answer">{{Answer}}<br>{{MyAudio}}',
-                }, 
-                {
-                    'name': 'Card 3',
-                    'qfmt': '{{MyAudio}}',
-                    'afmt': '{{FrontSide}}<hr id="answer">{{Answer}}<br>{{Question}}<br>{{MyMedia}}',
-                },           
-            ])
+            model_instance.model_name,
+            css=model_instance.css,
+            fields=model_instance.fields,
+            templates=model_instance.templates)
         for card in cards:
             # (filepath, filename)
             # [[x['input'], x['translatedText']] for x in results]
             # first one is english native second is learnt
-            deck_media_files.append(card['archived_card__local_audio_file_path'])
-            deck_media_files.append(card['archived_card__local_image_file_path'])
+            if card['deck__audio_enabled']:
+                deck_media_files.append(card['archived_card__local_audio_file_path'])
+            if card['deck__images_enabled']:
+                deck_media_files.append(card['archived_card__local_image_file_path'])
             image_filename = card['archived_card__universal_image_filename']
             audio_filename = card['archived_card__universal_audio_filename']
-            note = genanki.Note(
-                model = model,
-                fields = [
-                    f'{card["native_quote"]}',
-                    f'{card["learnt_quote"]}',
-                    f'<img src="{image_filename}">',
-                    f'[sound:{audio_filename}]'
-                ]
-            )
+            capitalised_native_quote = card["native_quote"][0].upper() + card["native_quote"][1:]
+            capitalised_learnt_quote = card["learnt_quote"][0].upper() + card["learnt_quote"][1:]
+            # check that we have the media trying to attach
+            if image_filename and audio_filename:
+                print("*ITS TRYING THIS*")
+                note = genanki.Note(
+                    model = model,
+                    fields = [
+                        f'{capitalised_native_quote}',
+                        f'{capitalised_learnt_quote}',
+                        f'<img src="{image_filename}">',
+                        f'[sound:{audio_filename}]'
+                    ]
+                )
+            elif audio_filename:
+                print("*ITS TRYING THIS 2*")
+                note = genanki.Note(
+                    model = model,
+                    fields = [
+                        f'{capitalised_native_quote}',
+                        f'{capitalised_learnt_quote}',
+                        f'[sound:{audio_filename}]'
+                    ]
+                )
+            elif image_filename:
+                print("*ITS TRYING THIS 3*")
+                note = genanki.Note(
+                    model = model,
+                    fields = [
+                        f'{capitalised_native_quote}',
+                        f'{capitalised_learnt_quote}',
+                        f'<img src="{image_filename}">',
+                    ]
+                )
+            else: 
+                note = genanki.Note(
+                    model = model,
+                    fields = [
+                        f'{capitalised_native_quote}',
+                        f'{capitalised_learnt_quote}',
+                    ]
+                )  
             deck.add_note(note)
+            # record progress
+            progress+=progress_unit
+            progress_recorder.set_progress(progress, max_progress)
         package = genanki.Package(deck)
         package.media_files = deck_media_files
-        package.write_to_file('forge/forgeddecks/test.apkg')
+        print(f'{cards[0]["deck_local_filepath"]}')
+        package.write_to_file(f'{cards[0]["deck_local_filepath"]}')
+        return cards, progress_recorder, progress
+
+
+def convert_instance(model_name):
+    # Max like 6 models, worth just setting it like this and having long code in another file
+
+    if model_name == 'Standard': 
+        model = StandardModel()
+        return model
+    elif model_name == 'PrettyStandardModel':
+        model = PrettyStandardModel()
+        return model
+    elif model_name =='PrettyStandardModelNoImage':
+        model = PrettyStandardModelNoImage
+        return model
+    elif model_name == 'PrettyStandardModelNoAudio':
+        model = PrettyStandardModelNoAudio
+        return model
+
+def make_deck_filename(cards):
+    card_ids = [card['id'] for card in cards]
+    cards_processed = f'{min(card_ids)}-{max(card_ids)}'
+    filename = f'{cards[0]["user"]}-{cards[0]["deck__id"]}-{cards_processed}.apkg'
+    local_filepath = f'forge/forgeddecks/{filename}'
+    print(f"*LOCAL FILENAME ={local_filepath}*")
+    aws_filepath = f'forgeddecks/{filename}'
+    for card in cards:
+        card['deck_local_filepath'] = local_filepath
+        card['deck_aws_filepath'] = aws_filepath
+        card['deck_filename'] = filename
+    return cards
+
+def create_forgeddecks(cards):
+    deck = UserDecks.objects.get(id=cards[0]['deck__id'])
+    forged_deck_object = ForgedDecks(
+        aws_file_path = cards[0]['deck_aws_filepath'],
+        aws_download_link = cards[0]['aws_download_link'],
+        local_file_path = cards[0]['deck_local_filepath'],
+        deck_filename = cards[0]['deck_filename'],
+        deck = deck,
+        number_of_cards = len(cards)
+    )
+    forged_deck_object.save()
+    return forged_deck_object
+
+def update_incoming_cards_forge(forged_deck_object, cards):
+    for card in cards:
+        updated_quote = IncomingCards.objects.get(id=card['id'])
+        # Usefulf for debugging to not change this each time
+        updated_quote.deck_made = True
+        updated_quote.forged_deck = forged_deck_object
+        updated_quote.save()
+
+def upload_deck_to_s3(cards, s3):
+    print("*UPLOADING DECK TO S3")
+    try:
+        s3.upload_file(cards[0]['deck_local_filepath'], os.environ['AWS_STORAGE_BUCKET_NAME'], cards[0]['deck_aws_filepath'])
+        cards[0]['upload_deck_success'] = True
+        print('*DECK UPLOADED*')
+    except FileNotFoundError:
+        print("The file was not found")
+        cards[0]['upload_deck_success'] = False
+    except NoCredentialsError:
+        print("Credentials not available")
+        cards[0]['upload_deck_success'] = False
+    return cards
+
+
+def get_download_link(cards, s3):
+    print("*MAKING DOWNLOAD LINK*")
+    try:
+        response = s3.generate_presigned_url('get_object',
+                                                    Params={'Bucket': os.environ['AWS_STORAGE_BUCKET_NAME'],
+                                                            'Key': cards[0]['deck_aws_filepath']},
+                                                    ExpiresIn=600)
+        print(f"*GENERATED PRESIGNED URL AT {response}  *")
+        cards[0]['aws_download_link'] = response
+    except ClientError as e:
+        logging.error(e)
+    
+    return cards
