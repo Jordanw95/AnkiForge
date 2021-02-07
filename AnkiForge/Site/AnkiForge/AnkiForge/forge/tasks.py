@@ -294,6 +294,8 @@ def convert_instance(model_name):
     elif model_name == 'PrettyStandardModelNoAudio':
         model = PrettyStandardModelNoAudio
         return model
+    else: 
+        print:"HERES YOUR FUCK UP"
 
 def make_deck_filename(cards):
     card_ids = [card['id'] for card in cards]

@@ -151,7 +151,7 @@ class IncomingCards(models.Model):
         translation_cost = quote_length * 1
 
         if deck.images_enabled:
-            media_costs += 100
+            media_costs += 10
         if deck.audio_enabled:
             media_costs += quote_length * 1
         

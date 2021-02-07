@@ -18,7 +18,7 @@ class MySignUpForm(UserCreationForm):
         user= super().save(commit=False)
         user.save()
         # Creating a new UserMembership
-        user_membership = UserMembership.objects.create(user=user, membership=self.payg_membership, user_points = 0)
+        user_membership = UserMembership.objects.create(user=user, membership=self.payg_membership, user_points = 1000)
         user_membership.save()
         # Creating the UserSubscription
         user_subscription = Subscription()

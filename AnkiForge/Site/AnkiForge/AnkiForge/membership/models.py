@@ -23,7 +23,7 @@ class Membership(models.Model):
     max_length=30
       )
     price = models.DecimalField(default=0, max_digits=5, decimal_places = 2)
-    points_awarded = models.IntegerField(default=0)
+    points_awarded = models.IntegerField(default=100)
 
     def __str__(self):
       return self.membership_type
@@ -32,7 +32,7 @@ class UserMembership(models.Model):
 
     user = models.OneToOneField(settings.AUTH_USER_MODEL, related_name='user_membership', on_delete=models.CASCADE)
     membership = models.ForeignKey(Membership, related_name='user_membership', on_delete=models.SET_NULL, null=True)
-    user_points = models.PositiveIntegerField(default = 0)
+    user_points = models.PositiveIntegerField(default = 100)
 
     def __str__(self):
        return self.user.username

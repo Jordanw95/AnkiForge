@@ -194,7 +194,11 @@ class UserIncomingCardsAPIList(generics.ListCreateAPIView):
         return IncomingCards.objects.filter(user=user)
 
 
-"""All incoming cards view AdminCardsView (TBC if go through this route) """
+class TestingAllIncomingCards(generics.ListCreateAPIView):
+    serializer_class = IncomingCardsSerializer
+
+    def get_queryset(self):
+        return IncomingCards.objects.all()
 
 
 
