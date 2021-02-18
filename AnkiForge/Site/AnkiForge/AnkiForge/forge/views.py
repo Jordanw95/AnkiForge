@@ -3,9 +3,10 @@ from django.views.generic import TemplateView, CreateView, ListView, FormView, V
 from django.contrib.auth.mixins import LoginRequiredMixin
 from forge.forms import AddIncomingCardForm
 from decks.models import IncomingCards, UserDecks, ForgedDecks
+from membership.models import UserMembership
 from rest_framework import generics
 from django.conf import settings
-from decks.serializers import UserDecksSerializer, IncomingCardsSerializer
+from decks.serializers import UserDecksSerializer, IncomingCardsSerializer,ReadyForForgeCardsSerializer, UserPointsSerializer
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
 from rest_framework.response import Response
@@ -187,19 +188,41 @@ class UserIncomingCardsAPIList(generics.ListCreateAPIView):
     #         return Response(serializer.data, status=status.HTTP_201_CREATED)
     #     else : 
     #         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
     def get_queryset(self):
         user = self.request.user
         return IncomingCards.objects.filter(user=user)
 
 
-class TestingAllIncomingCards(generics.ListCreateAPIView):
-    serializer_class = IncomingCardsSerializer
+
+
+# class TestingAllIncomingCards(generics.ListCreateAPIView):
+#     serializer_class = IncomingCardsSerializer
+
+#     def get_queryset(self):
+#         return IncomingCards.objects.all()
+
+""" USER CARDS READY FOR FORGING """
+
+
+
+class UserReadyForForgeAPIList(generics.ListAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = ReadyForForgeCardsSerializer
 
     def get_queryset(self):
-        return IncomingCards.objects.all()
+        user = self.request.user
+        # deckid = self.request.query_params.get('deck')
+        # print(deckid)
+        deck = self.request.data['deck']
+        return IncomingCards.readyforforge.filter(user=user, deck=deck)
 
+class UserPointsAPIList(generics.ListAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = UserPointsSerializer
+
+    def get_queryset(self):
+        user = self.request.user
+        return UserMembership.objects.filter(user = user)
 
 
 

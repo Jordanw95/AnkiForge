@@ -141,22 +141,24 @@ class IncomingCards(models.Model):
     readyforprocess_objects = ReadyForProcess()
     readyforforge = ReadyForForge()
 
-    # Charging
+    # Charging based on users 300000
     def calc_cost(self):
         quote_length = len(self.incoming_quote)
         user = self.user
         membership = user.user_membership
         deck = self.deck
         media_costs = 0
-        translation_cost = quote_length * 1
+        # Translation cost
+        translation_cost = quote_length * 1.461
 
         if deck.images_enabled:
-            media_costs += 10
+            media_costs += 520
         if deck.audio_enabled:
-            media_costs += quote_length * 1
+            media_costs += quote_length * 1.192
         
         self.cost = media_costs + translation_cost
-        resultant_balance = membership.user_points - self.cost
+        # Inlcuding s3 cost
+        resultant_balance = membership.user_points - self.cost + 4
 
         if resultant_balance >= 0 :
             membership.user_points = resultant_balance

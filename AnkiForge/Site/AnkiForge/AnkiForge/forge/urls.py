@@ -17,6 +17,8 @@ urlpatterns = [
     # API VIEWS
     path('api/userdecks/', views.UserDecksAPIList.as_view(), name='api_user_decks'),
     path('api/usercards/', views.UserIncomingCardsAPIList.as_view(), name = 'api_user_cards'),
+    path('api/userreadyforforge/', views.UserReadyForForgeAPIList.as_view(), name='api_readyforforge'),
+    path('api/userpoints', views.UserPointsAPIList.as_view(), name = "api_userpoints")
     # Testing APIs
-    path('api/allincoming', views.TestingAllIncomingCards.as_view(), name='api_testing_allincoming'),
+    # path('api/allincoming', views.TestingAllIncomingCards.as_view(), name='api_testing_allincoming'),
 ]

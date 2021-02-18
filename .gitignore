@@ -9,7 +9,9 @@ AnkiForge/env
 AnkiForge/Site/AnkiForge/AnkiForge/env.env
 AnkiForge/Site/AnkiForge/AnkiForge/forge/audio
 AnkiForge/Site/AnkiForge/AnkiForge/forge/images
+AnkiForge/AnkiForgeDesktop/node_modules
 *.DS_Store
 *.idea
 *.pyc
 .DS_Store
+

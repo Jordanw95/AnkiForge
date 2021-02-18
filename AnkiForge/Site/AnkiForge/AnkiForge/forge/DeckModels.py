@@ -74,6 +74,7 @@ width:auto;
 height:auto;
 max-width300px;
 max-height:300px;
+min-width:200px;
 }
 .container-back{
 max-height:300px;
@@ -331,6 +332,7 @@ width:auto;
 height:auto;
 max-width300px;
 max-height:300px;
+min-width:200px;
 }
 .container-back{
 max-height:300px;
