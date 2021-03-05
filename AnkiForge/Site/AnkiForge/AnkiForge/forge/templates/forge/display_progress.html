@@ -21,10 +21,10 @@
             <div id="progress-bar-message">Waiting for progress to start...</div>
             </div>
         </div>
-        {% comment %} FOR REDIRECT https://github.com/czue/celery-progress/issues/41 {% endcomment %}
 <script src="{% static 'celery_progress/celery_progress.js' %}"></script>
-<script src="{% static 'vendor/jquery/jquery-3.2.1.min.js' %}"></script>
+<script src="{% static 'tablestyle/vendor/jquery/jquery-3.2.1.min.js' %}"></script>
 <script>
+    {% comment %} FOR REDIRECT https://github.com/czue/celery-progress/issues/41 {% endcomment %}
     function processSuccess(progressBarElement, progressBarMessageElement, result) {
         // Assuming result contains the model ID
         var download_link = result

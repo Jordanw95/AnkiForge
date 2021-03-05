@@ -19,22 +19,16 @@ import os
 import boto3
 from botocore.exceptions import ClientError
 from botocore.client import Config
-from AnkiForge.mixins import LoggedInRedirectMixin, UserSubscribedMixin, UserSubscribedWithPointsMixin
-from django.urls import reverse_lazy
 
-
-
-"""****CLASS BASED VIEWS****"""
-
-
-class ForgeIndexView(UserSubscribedMixin, TemplateView):
-    template_name = "forge/forge_index.html"
-    redirect_url = reverse_lazy('main_entrance:index')
+class ForgeIndexView(LoginRequiredMixin, TemplateView):
+    login_url = 'main_entrance:login'
     
+    template_name = "forge/forge_index.html"
 
-class IncomingCardCreateView(UserSubscribedWithPointsMixin, CreateView):
+class IncomingCardCreateView(LoginRequiredMixin, CreateView):
+    login_url = 'main_entrance:login'
+
     template_name = "forge/add_incoming_card.html"
-    redirect_url = reverse_lazy('main_entrance:index')
     form_class = AddIncomingCardForm
     model = IncomingCards
 
@@ -48,7 +42,10 @@ class IncomingCardCreateView(UserSubscribedWithPointsMixin, CreateView):
         form.instance.user = self.request.user
         return super().form_valid(form)
 
-class ForgeDecksIndex(UserSubscribedMixin, ListView):
+
+"""Building view up from base"""
+
+class ForgeDecksIndex(LoginRequiredMixin, ListView):
     login_url = 'main_entrance:login'
     # redirect_field_name= 'main_entrance/index.html'
 
@@ -60,7 +57,7 @@ class ForgeDecksIndex(UserSubscribedMixin, ListView):
         return UserDecks.objects.filter(user= self.request.user)
          
  
-class ForgeDecksList(UserSubscribedMixin, ListView):
+class ForgeDecksList(LoginRequiredMixin, ListView):
     login_url = 'main_entrance:login'
     template_name = 'forge/forge_decks.html'
     context_object_name = 'userdecks'
@@ -80,7 +77,7 @@ class ForgeDecksList(UserSubscribedMixin, ListView):
         context['current_deck'] = self.current_deck
         return context
 
-class AlreadyForgedDecksIndex(UserSubscribedMixin, ListView):
+class AlreadyForgedDecksIndex(LoginRequiredMixin, ListView):
     login_url = 'main_entrance:login'
     template_name = 'forge/already_forged_decks_index.html'
     context_object_name = 'userdecks'
@@ -88,7 +85,7 @@ class AlreadyForgedDecksIndex(UserSubscribedMixin, ListView):
     def get_queryset(self):
         return UserDecks.objects.filter(user= self.request.user)
 
-class AlreadyForgedDecksList(UserSubscribedMixin, ListView):
+class AlreadyForgedDecksList(LoginRequiredMixin, ListView):
     login_url = 'main_entrance:login'
     template_name = 'forge/already_forged_decks_list.html'
     context_object_name = 'userdecks'
@@ -106,12 +103,6 @@ class AlreadyForgedDecksList(UserSubscribedMixin, ListView):
         context['forged_decks'] = self.current_deck_forged_decks
         context['current_deck'] = self.deck_name
         return context
-
-
-
-"""****FUNCTION BASED VIEWS*****"""
-
-
 
 @login_required
 def forge_action(request, pk):
@@ -161,11 +152,15 @@ def get_download(request, pk):
 
 
 
+""" View for testing media collect task"""
+# from django.shortcuts import render
+# from django.http import HttpResponse
+
+# def test_media_collect(request):
+#     translate_and_archive.delay()
+#     return HttpResponse("The task should be sent!")
 
 """API VIEWS"""
-
-
-
 
 """Retrieve decks for current user """
 class UserDecksAPIList(generics.ListCreateAPIView):

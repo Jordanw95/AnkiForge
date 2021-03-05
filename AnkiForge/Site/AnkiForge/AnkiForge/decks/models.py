@@ -144,23 +144,21 @@ class IncomingCards(models.Model):
     # Charging based on users 300000
     def calc_cost(self):
         quote_length = len(self.incoming_quote)
-        detection_quote = self.incoming_quote.split()
-        detection_quote_length = len(" ".join(detection_quote[:5]))
         user = self.user
         membership = user.user_membership
         deck = self.deck
         media_costs = 0
         # Translation cost
-        translation_cost = (quote_length * 1.461) + (detection_quote_length*1.461)
+        translation_cost = quote_length * 1.461
 
         if deck.images_enabled:
             media_costs += 520
         if deck.audio_enabled:
             media_costs += quote_length * 1.192
         
+        self.cost = media_costs + translation_cost
         # Inlcuding s3 cost
-        self.cost = media_costs + translation_cost + 4
-        resultant_balance = membership.user_points - self.cost
+        resultant_balance = membership.user_points - self.cost + 4
 
         if resultant_balance >= 0 :
             membership.user_points = resultant_balance
