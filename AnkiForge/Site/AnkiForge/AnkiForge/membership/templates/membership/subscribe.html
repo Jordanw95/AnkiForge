@@ -1,0 +1,33 @@
+{% extends 'main_entrance/base.html' %}
+{% load static %}
+{% block content %}
+{% comment %} SIDE MENU {% endcomment %}
+<div class="row">
+    <div class="col-2">    
+        {% include 'membership/base.html' %}
+    </div>
+    <div class = "col">    
+        <!-- All other content -->
+        <div class="container">
+            <div class="jumbotron">
+                <h1>Subscribe</h1>
+                <button type="submit" class="btn btn-success" id = "submitbtn">Subscribe</button>
+                <a type="button" class="btn btn-danger" href="{% url 'membership:cancel_subscription' %}">Cancel</a>
+            </div>
+        </div>
+        
+        
+        
+        
+        
+        <!-- This is the end of all other content. -->
+    </div>
+</div>
+{% endblock content %}
+
+{% block footer_scripts %}
+{{ block.super }}
+<script src="https://js.stripe.com/v3/"></script>
+<script src="{% static 'js/subscription.js' %}"></script>
+
+{% endblock %}

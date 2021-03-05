@@ -1,0 +1,27 @@
+{% extends 'main_entrance/base.html' %}
+{% load static %}
+{% block content %}
+{% comment %} SIDE MENU {% endcomment %}
+<div class="row">
+    <div class="col-2">    
+        {% include 'membership/base.html' %}
+    </div>
+    <div class = "col">    
+        <!-- All other content -->
+        <div class="container">
+            <div class="jumbotron">
+                <h3>You have succesfully subscribed!</h3>
+                <hr>
+                <br>
+                <p class = "lead"> You can now begin forging. Navigate to decks to creater your first deck and from there go to forge to begin adding cards (or hjust link the video on how it all works). </p>
+            </div>
+        </div>
+        
+        
+        
+        
+        
+        <!-- This is the end of all other content. -->
+    </div>
+</div>
+{% endblock content %}
