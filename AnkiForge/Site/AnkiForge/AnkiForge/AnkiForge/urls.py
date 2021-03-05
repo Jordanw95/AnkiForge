@@ -15,7 +15,6 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include, re_path
-from membership.models import Membership
 
 
 """ Url Views for initial start, pre DB entry"""

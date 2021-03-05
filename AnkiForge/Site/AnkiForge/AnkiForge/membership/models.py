@@ -8,30 +8,10 @@ from django.conf import settings
 
 # The first element in each tuple is the actual value to be set on the model, 
 # and the second element is the human-readable name. For example:
-class Membership(models.Model):
-    
-    MEMBERSHIP_CHOICES = (
-        ('PAYG', 'Pay As You Go'),
-        ('T1', 'Tier One'),
-        ('T2', 'Tier Two'),
-        ('T3', 'Tier Three')
-    )
-
-    slug = models.SlugField(null=True, blank=True)
-    membership_type = models.CharField(
-    choices=MEMBERSHIP_CHOICES, default='PAYG',
-    max_length=30
-      )
-    price = models.DecimalField(default=0, max_digits=5, decimal_places = 2)
-    points_awarded = models.IntegerField(default=100)
-
-    def __str__(self):
-      return self.membership_type
 
 class UserMembership(models.Model):
 
     user = models.OneToOneField(settings.AUTH_USER_MODEL, related_name='user_membership', on_delete=models.CASCADE)
-    membership = models.ForeignKey(Membership, related_name='user_membership', on_delete=models.SET_NULL, null=True)
     user_points = models.PositiveIntegerField(default = 100)
 
     def __str__(self):
@@ -39,13 +19,28 @@ class UserMembership(models.Model):
 
 
 # Here later is where renewals etc. can be handled.
+class ActiveSubscriptionsSearch(models.Manager):    
+    def get_queryset(self):
+        return super().get_queryset().filter(active = True)
+        
 class Subscription(models.Model):
 
-    user_membership = models.ForeignKey(UserMembership, related_name='subscription', on_delete=models.CASCADE)
-    active = models.BooleanField(default=True)
+    user_membership = models.OneToOneField(UserMembership, related_name='subscription', on_delete=models.CASCADE)
+    active = models.BooleanField(default=False)
+    active_until = models.PositiveIntegerField(default = 0) 
+    # managers
+    objects = models.Manager()
+    active_subscriptions = ActiveSubscriptionsSearch()
 
     def __str__(self):
       return self.user_membership.user.username
+
+class StripeSubscription(models.Model):
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, related_name='user_stripe_subscription', on_delete=models.CASCADE)
+    stripe_customer_id = models.CharField(max_length=255)
+    stripe_subscription_id = models.CharField(max_length=255)
+
+
 
 
     

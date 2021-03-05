@@ -136,25 +136,23 @@ DATABASES = {
 
 # Celery Settings
 
-# 
-
 CELERY_BROKER_URL = os.environ['CELERY_BROKER']
 CELERY_RESULT_BACKEND = os.environ['CELERY_BROKER']
 CELERY = {
     'CELERY_BROKER_URL': os.environ['CELERY_BROKER'],
     'CELERY_RESULT_BACKEND' : os.environ['CELERY_BROKER'],
-    'CELERY_IMPORTS': ('forge.tasks', ),
+    'CELERY_IMPORTS': ('forge.tasks','membership.tasks' ),
     'CELERY_TASK_SERIALIZER': 'json',
     'CELERY_RESULT_SERIALIZER': 'json',
     'CELERY_ACCEPT_CONTENT': ['json'],
 }
 
-# CELERY_BEAT_SCHEDULE = {
-#     'translate_and_archive': {
-#         'task': 'forge.tasks.translate_and_archive',
-#         'schedule': crontab()  # execute every minute
-#     }
-# }
+CELERY_BEAT_SCHEDULE = {
+    'membership_check': {
+        'task': 'membership_check',
+        'schedule': 3600,  # execute every minute
+    }
+}
 # Password validation
 # https://docs.djangoproject.com/en/3.1/ref/settings/#auth-password-validators
 
@@ -211,8 +209,8 @@ if USE_S3:
 
 else:
     print("***USE LOCAL STATIC***")
-    STATIC_URL = '/staticfiles/'
-    STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+    STATIC_URL = '/static/'
+    # STATIC_ROOT = os.path.join(BASE_DIR, 'static')
     MEDIA_URL = '/mediafiles/'
     MEDIA_ROOT = os.path.join(BASE_DIR, 'mediafiles')
 
@@ -231,3 +229,10 @@ LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
 
 AUTH_USER_MODEL = 'main_entrance.User'
+
+# Stripe settings
+
+STRIPE_PUBLISHABLE_KEY=os.environ['STRIPE_PUBLISHABLE_KEY']
+STRIPE_SECRET_KEY=os.environ['STRIPE_SECRET_KEY']
+STRIPE_PRICE_ID = "price_1IMcPmJ7nzI5MUjbgbNjnbZH"
+STRIPE_ENDPOINT_SECRET=os.environ['STRIPE_ENDPOINT_SECRET']
