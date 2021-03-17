@@ -17,4 +17,5 @@ RUN python3 -m nltk.downloader punkt
 RUN python3 -m nltk.downloader averaged_perceptron_tagger
 
 
-
+# docker build --network=host -t testinstall2 .
+# docker tag testinstall2:latest testinstall:staging

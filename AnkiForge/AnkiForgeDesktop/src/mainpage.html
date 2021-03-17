@@ -1,0 +1,97 @@
+<!DOCTYPE html> 
+<!DOCTYPE html> 
+<html> 
+  <head> 
+    <meta charset="UTF-8"> 
+    <title>Hello World!</title> 
+    <!-- https://electronjs.org/docs/tutorial 
+      /security#csp-meta-tag -->
+      <meta http-equiv="Content-Security-Policy" 
+      content="script-src 'self' 'unsafe-inline';" /> 
+      <!-- Bootstrap CSS -->
+      <link rel="stylesheet" href="../node_modules/bootstrap/dist/css/bootstrap.min.css">
+      <!-- My CSS -->
+      <link rel="stylesheet" href="static/css/custom.css">
+      <!-- loading jquery a different way -->
+      <script>
+        window.jQuery = window.$ = require('jquery');
+        </script>
+      <script src="../node_modules/popper.js/dist/umd/popper.js"></script>
+      <script src="../node_modules/bootstrap/dist/js/bootstrap.js"></script>
+  </head> 
+  <body> 
+    <div class = "jumbotron d-flex align-items-center min-vh-100">
+      <div class = "container text-center">
+        <h5> Select your deck and send your cards. </h5>
+        <hr>
+
+        <div class="container">
+          <div class="input-group mb-3">
+            <div class="input-group-prepend">
+              <select class = "custom-select"id="decklist"></select>
+            </div>
+            <input type="text" class="form-control" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" id = "incomingquote">
+          </div>
+          <br>
+          <div>
+            <button id ="sendcard" class = "btn btn-success">
+              Send Card
+            </button>
+          </div>
+          <br>
+          <p class ="lead" id="quotefeedback"></p>
+          <hr>
+          <!-- <div class ="d-flex justify-content-between">
+            <p class = "lead" id="quotefeedback"></p>
+            <hr>
+            <small class = "text-muted"> You can use the keyboard to send quote easily. Simply highlight a quote anywhere with AnkiForge Desktop open, and press control/command + C, followed by </small>
+            <button type="button" class="btn btn-info btn-sm">Enable</button>
+          </div> -->
+          <div id="accordion">
+            <div class="card">
+              <div class="card-header" id="headingTwo">
+                <h5 class="mb-0">
+                  <button class="btn btn-light collapsed" data-toggle="collapse" data-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+                    Want to send cards using the keyboard shortcut?
+                  </button>
+                </h5>
+              </div>
+              <div id="collapseTwo" class="collapse" aria-labelledby="headingTwo" data-parent="#accordion">
+                <div class="card-body">
+                  <p>Enable this setting to send cards to your selected deck from any other app on windows/mac. Simply highlight the desired text, press Control/Command + C followed by Alt/Opt + X.</p>
+                  <button type="button" class="btn btn-info btn-sm" id="shortcut-toggle">Enable</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- <nav class="navbar fixed-top navbar-light" style="background-color: #a0a0a5;">
+      <a class="navbar-brand" href="#">Fixed top</a>
+    </nav> -->
+    <nav class="navbar fixed-top navbar-expand-md navbar-light" style="background-color: #37636d79;">
+          <ul class="navbar-nav mr-auto">
+              <li class="nav-item">
+                  <a class="nav-link banner" href="#" id="forgecount"></a>
+              </li>
+          </ul>
+      </div>
+      <div class="mx-auto order-0">
+          <a class="navbar-brand mx-auto" href="#">AnkiForge</a>
+      </div>
+          <ul class="navbar-nav ml-auto">
+              <li class="nav-item active">
+                  <a class="nav-link banner" href="#" id="userpoints">Right is a bit longer</a>
+              </li>
+          </ul>
+  </nav>
+    
+    <!-- Adding Individual Renderer 
+      Process JS File -->
+      
+      <!-- Adding Individual Renderer Process JS File -->
+      <script src="mainpage.js"></script> 
+  </body> 
+</html> 
+

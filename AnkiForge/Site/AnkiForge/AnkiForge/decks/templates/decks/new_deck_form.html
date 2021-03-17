@@ -2,17 +2,39 @@
 {% load crispy_forms_tags %}
 {% block content %}
 {% comment %} SIDE MENU {% endcomment %}
-<div class="row">
+<!-- <div class="row">
     <div class="col-2">    
         {% include 'decks/base.html' %}
     </div>
     <div class="col">
         {% comment %} All page content here {% endcomment %}
-        <div class = "jumbotron">
-            <h1 class ="text-center">Create a New Deck</h1>
-            <p class ="lead text-center"> Fill in the information below </p>
-            <hr>
-            {% crispy form %}
+        <div class = "container">
+            <div class = "jumbotron">
+                <h1 class ="text-center">Create a New Deck</h1>
+                <p class ="lead text-center"> Fill in the information below </p>
+                <hr>
+                {% crispy form %}
+            </div>
+        </div>
+
+        {% comment %} This is the end of content {% endcomment %}
+    </div>
+</div> -->
+
+<div class="row justify-content-center">
+    <div class="col-xl-2">    
+        {% include 'decks/base.html' %}
+    </div>
+    <div class="col-xl">
+        {% comment %} All page content here {% endcomment %}
+        <div class = "container form-container">
+            <div class = "jumbotron">
+                <h1 class ="text-center">Create a New Deck</h1>
+                <p class ="lead text-center"> Fill in the information below </p>
+                <hr>
+                {% csrf_token %}
+                {% crispy form %}
+            </div>
         </div>
 
         {% comment %} This is the end of content {% endcomment %}

@@ -1,15 +1,21 @@
 from rest_framework import serializers
 from django.conf import settings
 from decks.models import IncomingCards, UserDecks
+from membership.models import UserMembership
 
 class UserDecksSerializer(serializers.ModelSerializer):
+    id = serializers.ReadOnlyField()
     class Meta():
-        model = UserDecks
+        # Minimal fields means less for api electron to process
         fields = [
-            'user', 'deck_id', 'ankiforge_deck_name', 'anki_deck_name',
-            'native_lang', 'learnt_lang', 'images_enabled', 'audio_enabled',
-            'model_code'
+            'id', 'user','ankiforge_deck_name',
         ]
+        model = UserDecks
+        # fields = [
+        #     'id', 'user', 'deck_id', 'ankiforge_deck_name', 'anki_deck_name',
+        #     'native_lang', 'learnt_lang', 'images_enabled', 'audio_enabled',
+        #     'model_code'
+        # ]
 
 class IncomingCardsSerializer(serializers.ModelSerializer):
 
@@ -22,24 +28,21 @@ class IncomingCardsSerializer(serializers.ModelSerializer):
         # Getting rid of error that user is reuired
         read_only_fields = ('user',)
 
+class ReadyForForgeCardsSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = IncomingCards
+        fields = ['user', 'deck','incoming_quote']
+        # Getting rid of error that user is reuired
+        read_only_fields = ('user',)
     
 
+class UserPointsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserMembership
+        fields = ['user', 'user_points']
 
-# class SnippetSerializer(serializers.ModelSerializer):
-#     owner = serializers.ReadOnlyField(source='owner.username')
-#     class Meta:
-#         model = Snippet
-#         fields = ['id', 'title', 'code', 'linenos', 'language', 'style', 'owner']
+        read_only_fields = ['user']
 
-
-# """Creating representations of users in the API"""
-# class UserSerializer(serializers.ModelSerializer):
-#     """Because 'snippets' is a reverse relationship on the User model, 
-#     it will not be included by default when using the ModelSerializer class, so we needed to add an explicit field for it."""
-#     snippets = serializers.PrimaryKeyRelatedField(many=True, queryset=Snippet.objects.all())
-
-#     class Meta:
-#         model = User
-#         fields = ['id', 'username', 'snippets']
 
 

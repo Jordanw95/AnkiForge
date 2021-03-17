@@ -9,59 +9,20 @@ from django.db import transaction
 
 
 class CardModels(models.Model):
-    CODE = 1041609445
-    CARD_TYPE ='Basic (and reversed card)' 
-    CSS="""
-        .card {
-        font-family: arial;
-        font-size: 20px;
-        text-align: center;
-        color: black;
-        background-color: white;
-        }
-        .media {
-        margin: 2px;
-        }
-    """
-    FIELDS=[
-        {'name': 'Question'},
-        {'name': 'Answer'},
-        {'name': 'MyMedia'},
-        {'name': 'MyAudio'}, 
-    ]
-    TEMPLATES=[
-        {
-            'name': 'Card 1',
-            'qfmt': '{{Question}}<br>{{MyMedia}}',
-            'afmt': '{{FrontSide}}<hr id="answer">{{Answer}}<br>{{MyAudio}}',
-        }, 
-        {
-            'name': 'Card 3',
-            'qfmt': '{{MyAudio}}',
-            'afmt': '{{FrontSide}}<hr id="answer">{{Answer}}<br>{{Question}}<br>{{MyMedia}}',
-        },           
-    ]
-
     model_name = models.CharField(max_length=50)
-    anki_model_code = models.TextField(default={
-                                'code' : CODE,
-                                'card_type': CARD_TYPE,
-                                'css' : CSS,
-                                'fields' : FIELDS,
-                                'templates' : TEMPLATES
-                                })
     def __str__(self):
         return self.model_name
+
 class UserDecks(models.Model):
     NATIVE_LANG_CHOICES = (
         ('en', 'English'),
-        ('es', 'Spanish'),
-        ('ja', 'Japanese'),
-        ('zh-CN', 'Chinese (Simplified)'),
-        ('zh-TW', 'Chinese (Traditional)'),
-        ('de', 'German'),
-        ('it', 'Italian'),
-        ('fr', 'French'),
+        # ('es', 'Spanish'),
+        # ('ja', 'Japanese'),
+        # ('zh-CN', 'Chinese (Simplified)'),
+        # ('zh-TW', 'Chinese (Traditional)'),
+        # ('de', 'German'),
+        # ('it', 'Italian'),
+        # ('fr', 'French'),
     )
 
     LEARNT_LANG_CHOICES = (
@@ -75,46 +36,6 @@ class UserDecks(models.Model):
         ('fr', 'French'),
     )
         
-    CODE = 1041609445
-    CARD_TYPE ='Basic (and reversed card)' 
-    CSS="""
-        .card {
-        font-family: arial;
-        font-size: 20px;
-        text-align: center;
-        color: black;
-        background-color: white;
-        }
-        .media {
-        margin: 2px;
-        }
-    """
-    FIELDS=[
-        {'name': 'Question'},
-        {'name': 'Answer'},
-        {'name': 'MyMedia'},
-        {'name': 'MyAudio'}, 
-    ]
-    TEMPLATES=[
-        {
-            'name': 'Card 1',
-            'qfmt': '{{Question}}<br>{{MyMedia}}',
-            'afmt': '{{FrontSide}}<hr id="answer">{{Answer}}<br>{{MyAudio}}',
-        }, 
-        {
-            'name': 'Card 3',
-            'qfmt': '{{MyAudio}}',
-            'afmt': '{{FrontSide}}<hr id="answer">{{Answer}}<br>{{Question}}<br>{{MyMedia}}',
-        },           
-    ]
-    DEFAULT_MODEL={
-        'code' : CODE,
-        'card_type': CARD_TYPE,
-        'css' : CSS,
-        'fields' : FIELDS,
-        'templates' : TEMPLATES
-        }
-
     def make_random_number():
         return random.randint(1000000000, 9999999999)
     
@@ -136,8 +57,7 @@ class UserDecks(models.Model):
     )
     images_enabled = models.BooleanField(default= True)
     audio_enabled = models.BooleanField(default = True)
-    model_code = models.ForeignKey(CardModels, related_name = 'model_code', on_delete=models.SET_DEFAULT,
-    default=DEFAULT_MODEL)
+    model_code = models.ForeignKey(CardModels, related_name = 'model_code', on_delete=models.SET_NULL, blank = True, null = True)
 
 
     def __str__(self):
@@ -154,6 +74,8 @@ class ArchivedCards(models.Model):
     original_language = models.CharField(max_length=50)
     translated_quote = models.TextField(max_length=300)
     translated_language = models.CharField(max_length=50)
+    local_audio_file_path = models.TextField(max_length=1000, default =None, null = True)
+    local_image_file_path = models.TextField(max_length=1000, default =None, null = True)
     aws_audio_file_path = models.TextField(max_length=1000, default =None, null = True)
     aws_image_file_path= models.TextField(max_length=1000, default =None, null = True)
     universal_audio_filename=models.TextField(max_length=1000, default =None, null=True)
@@ -178,6 +100,25 @@ class ReadyForProcess(models.Manager):
     def get_queryset(self):
         return super().get_queryset().filter(ready_for_archive =True, submitted_to_archive = False)
 
+class ForgedDecks(models.Model):
+    aws_file_path = models.TextField(max_length=1000, default =None, null = True)
+    aws_download_link = models.TextField(max_length=1000, default =None, null = True)
+    local_file_path = models.TextField(max_length=1000, default =None, null = True)
+    deck_filename = models.TextField(max_length=1000, default =None, null = True)
+    date_created = models.DateTimeField(default=timezone.now)
+    deck = models.ForeignKey(UserDecks, related_name = 'forged_deck_deck', on_delete=models.CASCADE)
+    number_of_cards = models.IntegerField(default = 0)
+
+    def __str__(self):
+        return self.deck_filename
+
+"""GET QUOTES READY FOR FORGE"""
+class ReadyForForge(models.Manager):
+    def get_queryset(self):
+        return super().get_queryset().filter(
+            submitted_to_archive=True, 
+            deck_made=False
+        )
 class IncomingCards(models.Model):
     
 
@@ -193,26 +134,32 @@ class IncomingCards(models.Model):
     quote_received_date = models.DateTimeField(default=timezone.now)
     deck_made =  models.BooleanField(default = False)
     archived_card = models.ForeignKey(ArchivedCards, related_name='archived_card', on_delete=models.CASCADE, blank = True, null=True)
+    forged_deck = models.ForeignKey(ForgedDecks, related_name='forged_deck', on_delete=models.SET_NULL, blank = True, null=True)
     
     # Manager instances
     objects = models.Manager()
     readyforprocess_objects = ReadyForProcess()
+    readyforforge = ReadyForForge()
 
-    # Charging
+    # Charging based on users 300000
     def calc_cost(self):
         quote_length = len(self.incoming_quote)
+        detection_quote = self.incoming_quote.split()
+        detection_quote_length = len(" ".join(detection_quote[:5]))
         user = self.user
         membership = user.user_membership
         deck = self.deck
         media_costs = 0
-        translation_cost = quote_length * 1
+        # Translation cost
+        translation_cost = (quote_length * 1.461) + (detection_quote_length*1.461)
 
         if deck.images_enabled:
-            media_costs += 100
+            media_costs += 520
         if deck.audio_enabled:
-            media_costs += quote_length * 1
+            media_costs += quote_length * 1.192
         
-        self.cost = media_costs + translation_cost
+        # Inlcuding s3 cost
+        self.cost = media_costs + translation_cost + 4
         resultant_balance = membership.user_points - self.cost
 
         if resultant_balance >= 0 :
@@ -260,5 +207,6 @@ class MediaTransactions(models.Model):
             media = 'without'
         return f"On {self.media_collected_date}, {self.charecters_sent_translator} were sent fortranslation {audio} audio and {media} pictures "
     
+
 
 # Create your models here.

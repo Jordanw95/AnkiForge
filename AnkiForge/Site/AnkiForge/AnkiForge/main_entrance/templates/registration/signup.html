@@ -1,17 +1,22 @@
 {% extends 'main_entrance/base.html' %}
 {% load crispy_forms_tags %}
 {% block content %}
-<div class='container'>
-    <div class='jumbotron'>
-
-    <h2>Sign Up Here!</h2>
-    <form method="post">
-        {% csrf_token %}
-        {{ form|crispy }}
-        <button type="submit" class="btn btn-danger" value="Sign up">Sign up</button>
-    </form>
+<div class="row overall-site-background justify-content-center">
+    <div class='container main-object-container'>
+            <div class='jumbotron'>
+        
+            <h2 class="text-center">Sign Up Here!</h2>
+            <br>
+            <hr>
+            <form method="post">
+                {% csrf_token %}
+                {{ form|crispy }}
+                <div class="lead d-flex justify-content-center" >
+                    <button type="submit" class="btn btn-success" value="Sign up">Sign up</button>
+                </div>
+            </form>
+            </div>
     </div>
 </div>
-
 
 {% endblock  %}
