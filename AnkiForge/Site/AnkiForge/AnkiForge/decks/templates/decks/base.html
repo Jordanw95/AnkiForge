@@ -1,14 +1,9 @@
 
-<div class="list-group">
+<div class="list-group decks-base-nav">
     {% url 'decks:decks_index' as url %}
-    <a href="{{ url }}" class="list-group-item list-group-item-action {% if request.path == url %}active{% endif %}">Introduction</a>
+    <a href="{{ url }}" class="list-group-item list-group-item-action decks-base-nav-list-item {% if request.path == url %}deck-base-list-item-active{% endif %}">Introduction</a>
     {% url 'decks:decks_create' as url %}
-    <a href="{{ url }}" class="list-group-item list-group-item-action {% if request.path == url %}active{% endif %}">Make a Deck</a>
+    <a href="{{ url }}" class="list-group-item list-group-item-action decks-base-nav-list-item {% if request.path == url %}deck-base-list-item-active{% endif %}">Make a Deck</a>
     {% url 'decks:decks_list' as url %}
-    <a href="{{ url }}" class="list-group-item list-group-item-action {% if request.path == url %}active{% endif %}">My Decks</a>
+    <a href="{{ url }}" class="list-group-item list-group-item-action decks-base-nav-list-item {% if request.path == url %}deck-base-list-item-active{% endif %}">My Decks</a>
 </div>
-
-                    {% comment %} {% url 'decks:decks_index' as url %}
-                    <li class="nav-item {% if request.path == url %}active{% endif %}">
-                        <a class="nav-link" href="{{ url }}">Decks</a>
-                    </li> {% endcomment %}

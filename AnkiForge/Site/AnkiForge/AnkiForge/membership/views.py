@@ -9,6 +9,7 @@ import stripe
 from main_entrance.models import User
 import datetime
 from django.contrib.auth.decorators import login_required
+import celery
 # class MembershipView(LoginRequiredMixin, ListView):
 
 
@@ -72,7 +73,8 @@ def create_checkout_session(request):
                 mode='subscription',
                 line_items=[
                     {
-                        'price': settings.STRIPE_PRICE_ID,
+                        # 'price': settings.STRIPE_PRICE_ID,
+                        'price': 'price_1IQygKJ7nzI5MUjb84lekonY',
                         'quantity': 1,
                     }
                 ]
@@ -135,7 +137,7 @@ def stripe_webhook(request):
             stripe_subscription.save()
         except:
             # Else create
-            print("STRIPE SUBSCRIPTION FOR THIS uSER DOESNT EXIST -  CREATING")
+            print("STRIPE SUBSCRIPTION FOR THIS USER DOESNT EXIST -  CREATING")
             StripeSubscription.objects.create(
                 user=user,
                 stripe_customer_id=stripe_customer_id,
@@ -176,6 +178,7 @@ def stripe_webhook(request):
         user_subscription.active_until = leeway_period_end
         user_subscription.save()
         print(user.username + ' just paid. There points are now ' + str(user_membership.user_points) + ' and it is ' + str(user_subscription.active) + ' that there subscription is active. ' )
+        celery.current_app.send_task('subscription_payment_email', (user.email, user.first_name, original_period_end))
 
 
 
@@ -199,6 +202,7 @@ def cancel_subscription(request):
                 'period_start_date':period_start_date,
                 'period_end_date': period_end_date,
             }
+            celery.current_app.send_task('subscription_cancelled_email', (user.email, user.first_name, period_end_date))
             return render(request, 'membership/cancel_subscription.html', context)
         except Exception as e:
             return JsonResponse({'error': (e.args[0])}, status =403)

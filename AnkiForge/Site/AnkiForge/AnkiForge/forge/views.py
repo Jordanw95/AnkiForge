@@ -3,7 +3,7 @@ from django.views.generic import TemplateView, CreateView, ListView, FormView, V
 from django.contrib.auth.mixins import LoginRequiredMixin
 from forge.forms import AddIncomingCardForm
 from decks.models import IncomingCards, UserDecks, ForgedDecks
-from membership.models import UserMembership
+from membership.models import UserMembership, Subscription
 from rest_framework import generics
 from django.conf import settings
 from decks.serializers import UserDecksSerializer, IncomingCardsSerializer,ReadyForForgeCardsSerializer, UserPointsSerializer
@@ -21,6 +21,7 @@ from botocore.exceptions import ClientError
 from botocore.client import Config
 from AnkiForge.mixins import LoggedInRedirectMixin, UserSubscribedMixin, UserSubscribedWithPointsMixin
 from django.urls import reverse_lazy
+from AnkiForge.decorators import user_is_subscribed, user_has_points
 
 
 
@@ -114,6 +115,7 @@ class AlreadyForgedDecksList(UserSubscribedMixin, ListView):
 
 
 @login_required
+@user_is_subscribed
 def forge_action(request, pk):
     # current_deck = get_object_or_404(UserDecks, id=pk, user=request.user)
     current_decks_cards = IncomingCards.readyforforge.filter(deck=pk, user =request.user)
@@ -127,6 +129,7 @@ def forge_action(request, pk):
         print("THERE ARE NO CARDS TO BE MADE IN THIS DECK")
 
 @login_required
+@user_is_subscribed
 def get_download(request, pk):
     forged_deck_requested = get_object_or_404(ForgedDecks, id=pk)
     download_link = forged_deck_requested.aws_download_link
@@ -168,7 +171,7 @@ def get_download(request, pk):
 
 
 """Retrieve decks for current user """
-class UserDecksAPIList(generics.ListCreateAPIView):
+class UserDecksAPIList(generics.ListAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = UserDecksSerializer
 
@@ -180,6 +183,18 @@ class UserDecksAPIList(generics.ListCreateAPIView):
 class UserIncomingCardsAPIList(generics.ListCreateAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = IncomingCardsSerializer
+
+    def post(self, request, *args, **kwargs):
+        user= self.request.user
+        # Every user will have UserMembership
+        user_membership = UserMembership.objects.get(user=user)
+        user_subscription = Subscription.objects.get(user_membership = user_membership)
+        if user_subscription.active and user_membership.user_points > 30 :
+            return self.create(request, *args, **kwargs)
+        return Response(status=403, data={
+            "error": "not authorized to add"
+        })
+
 
     def perform_create(self, serializer):
         serializer.save(user = self.request.user)
@@ -221,6 +236,8 @@ class UserReadyForForgeAPIList(generics.ListAPIView):
         deck = self.request.data['deck']
         return IncomingCards.readyforforge.filter(user=user, deck=deck)
 
+
+"""GET USER CURRENT POINTS"""
 class UserPointsAPIList(generics.ListAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = UserPointsSerializer

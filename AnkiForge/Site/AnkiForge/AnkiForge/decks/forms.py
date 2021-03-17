@@ -15,7 +15,7 @@ from crispy_forms.layout import Layout, Submit, Row, Column, HTML, Div
 #             'ankiforge_deck_name': _('The name of the deck that will appear on this website.'),
 #             'anki_deck_name': _('This MUST match the name of your deck as it appears in Anki.')
 #         }
-
+ 
 
 class CreateUserDeckForm(ModelForm):
     
@@ -50,7 +50,7 @@ class CreateUserDeckForm(ModelForm):
                 css_class = 'form-row',
             ),
             Div(
-                Submit('submit', 'Save this deck', css_class = 'pull-right'),
+                Submit('submit', 'Save this deck'),
                 css_class='text-center'
             )
             )

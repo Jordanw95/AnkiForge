@@ -143,13 +143,19 @@ sendQuote.addEventListener('click', ()=>{
     request.on('response', (response) => { 
         console.log(`STATUS: ${response.statusCode}`); 
         console.log(`HEADERS: ${JSON.stringify(response.headers)}`); 
+        var status= `${response.statusCode}`
+        if (status == "201"){
+            var formattedQuote = "'".concat(incomingInput.value, "'")
+            var successReponse = "Your quote : ".concat(formattedQuote, " has been sent to the deck: ", selectedDeck.ankiforge_deck_name)
+            quoteFeedback.innerHTML = successReponse;
+            incomingInput.value = "";
+        }else{
+            quoteFeedback.innerHTML = "It appears there was an error sending this quote. Do you have an active subscription and usage remaining for this month? You can check this on the account section of the website. Please get in touch at ankiforge@gmail.com if you can't resolve the issue."
+            incomingInput.value = "";
+        }
     }); 
     request.on('finish', () => { 
         console.log('Request is Finished') 
-        var formattedQuote = "'".concat(incomingInput.value, "'")
-        var successReponse = "Your quote : ".concat(formattedQuote, " has been sent to the deck: ", selectedDeck.ankiforge_deck_name)
-        quoteFeedback.innerHTML = successReponse;
-        incomingInput.value = "";
         getUserDecks()
         getUserPoints()
     }); 
@@ -183,12 +189,17 @@ function sendFromKeyboard(incomingtext){
         request.on('response', (response) => { 
             console.log(`STATUS: ${response.statusCode}`); 
             console.log(`HEADERS: ${JSON.stringify(response.headers)}`); 
+            var status= `${response.statusCode}`
+            if (status == "201") {                
+                var formattedQuote = "'".concat(incomingtext, "'")
+                var successReponse = "Your quote : ".concat(formattedQuote, " has been sent to the deck: ", selectedDeck.ankiforge_deck_name)
+                quoteFeedback.innerHTML = successReponse;
+            }else{
+                quoteFeedback.innerHTML = "It appears there was an error sending this quote. Do you have an active subscription and usage remaining for this month? You can check this on the account section of the website. Please get in touch at ankiforge@gmail.com if you can't resolve the issue."
+            }
         }); 
         request.on('finish', () => { 
             console.log('Request is Finished') 
-            var formattedQuote = "'".concat(incomingtext, "'")
-            var successReponse = "Your quote : ".concat(formattedQuote, " has been sent to the deck: ", selectedDeck.ankiforge_deck_name)
-            quoteFeedback.innerHTML = successReponse;
         }); 
         request.on('abort', () => { 
             console.log('Request is Aborted') 
