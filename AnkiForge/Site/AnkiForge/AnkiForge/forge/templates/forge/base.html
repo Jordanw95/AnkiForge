@@ -1,10 +1,10 @@
-<div class="list-group">
+<div class="list-group decks-base-nav">
     {% url 'forge:forge_index' as url %}
-    <a href="{{ url }}" class="list-group-item list-group-item-action {% if request.path == url %}active{% endif %}">Introduction</a>
-    {% url 'forge:forge_add_incoming_card' as url %}
-    <a href="{{ url }}" class="list-group-item list-group-item-action {% if request.path == url %}active{% endif %}">Make a card</a>
+    <a href="{{ url }}" class="list-group-item list-group-item-action decks-base-nav-list-item {% if request.path == url %}deck-base-list-item-active{% endif %}">Info</a>
+    {% url 'forge:forge_add_card_index' as url %}
+    <a href="{{ url }}" class="list-group-item list-group-item-action decks-base-nav-list-item {% if '/add_card' in request.path %}deck-base-list-item-active{% endif %}">Add a card</a>
     {% url 'forge:forge_forge_decks_index' as url %}
-    <a href="{{ url }}" class="list-group-item list-group-item-action {% if request.path == url %}active{% endif %}">Forge a deck</a>
+    <a href="{{ url }}" class="list-group-item list-group-item-action decks-base-nav-list-item {% if '/forgedecks' in request.path %} deck-base-list-item-active{% endif %}">Forge a deck</a>
     {% url 'forge:forge_already_forged_index' as url %}
-    <a href="{{ url }}" class="list-group-item list-group-item-action {% if request.path == url %}active{% endif %}">My forged decks</a>
-</div>
+    <a href="{{ url }}" class="list-group-item list-group-item-action decks-base-nav-list-item {% if '/myforgeddecks' in request.path %} deck-base-list-item-active{% endif %}">My forged decks</a>
+

@@ -1,7 +1,7 @@
 
 <div class="list-group decks-base-nav">
-    {% url 'decks:decks_index' as url %}
-    <a href="{{ url }}" class="list-group-item list-group-item-action decks-base-nav-list-item {% if request.path == url %}deck-base-list-item-active{% endif %}">Introduction</a>
+    {% url 'decks:decks_preview' as url %}
+    <a href="{{ url }}" class="list-group-item list-group-item-action decks-base-nav-list-item {% if request.path == url %}deck-base-list-item-active{% endif %}">Preview Card Style</a>
     {% url 'decks:decks_create' as url %}
     <a href="{{ url }}" class="list-group-item list-group-item-action decks-base-nav-list-item {% if request.path == url %}deck-base-list-item-active{% endif %}">Make a Deck</a>
     {% url 'decks:decks_list' as url %}

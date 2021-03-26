@@ -22,14 +22,15 @@
 </div> -->
 
 <div class="row justify-content-center">
-    <div class="col-xl-2">    
+    <div class="col-md-2">    
         {% include 'decks/base.html' %}
     </div>
-    <div class="col-xl">
+    <div class="col-md">
         {% comment %} All page content here {% endcomment %}
         <div class = "container form-container">
             <div class = "jumbotron">
                 <h1 class ="text-center">Create a New Deck</h1>
+                <br>
                 <p class ="lead text-center"> Fill in the information below </p>
                 <hr>
                 {% csrf_token %}

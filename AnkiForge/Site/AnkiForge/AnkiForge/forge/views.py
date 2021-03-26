@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from django.views.generic import TemplateView, CreateView, ListView, FormView, View, DetailView
 from django.contrib.auth.mixins import LoginRequiredMixin
-from forge.forms import AddIncomingCardForm
+from forge.forms import AddCardForm
 from decks.models import IncomingCards, UserDecks, ForgedDecks
 from membership.models import UserMembership, Subscription
 from rest_framework import generics
@@ -33,21 +33,64 @@ class ForgeIndexView(UserSubscribedMixin, TemplateView):
     redirect_url = reverse_lazy('main_entrance:index')
     
 
-class IncomingCardCreateView(UserSubscribedWithPointsMixin, CreateView):
-    template_name = "forge/add_incoming_card.html"
-    redirect_url = reverse_lazy('main_entrance:index')
-    form_class = AddIncomingCardForm
-    model = IncomingCards
+# class IncomingCardCreateView(UserSubscribedWithPointsMixin, CreateView):
+#     template_name = "forge/add_incoming_card.html"
+#     redirect_url = reverse_lazy('main_entrance:index')
+#     form_class = AddIncomingCardForm
+#     model = IncomingCards
 
-    # Passing the user to forms to adjust options
-    def get_form_kwargs(self):
-        kwargs = super(IncomingCardCreateView,self).get_form_kwargs()
-        kwargs['user'] = self.request.user
-        return kwargs
+#     # Passing the user to forms to adjust options
+#     def get_form_kwargs(self):
+#         kwargs = super(IncomingCardCreateView,self).get_form_kwargs()
+#         kwargs['user'] = self.request.user
+#         return kwargs
+    
+#     def form_valid(self,form):
+#         form.instance.user = self.request.user
+#         return super().form_valid(form)
+
+
+class AddCardIndex(UserSubscribedWithPointsMixin, ListView):
+    login_url = 'main_entrance:login'
+    # redirect_field_name= 'main_entrance/index.html'
+
+    model = UserDecks
+    template_name = 'forge/add_card_index.html'
+    context_object_name = 'userdecks' 
+    
+    def get_queryset(self):
+        return UserDecks.objects.filter(user= self.request.user)
+
+# class AddCardForm(UserSubscribedWithPointsMixin, ListView):
+#     template_name = "forge/add_card.html"
+#     redirect_url = reverse_lazy('main_entrance:index')
+#     context_object_name = "current_deck"
+
+#     # Passing the user to forms to adjust options
+
+#     def get_queryset(self):
+#         self.current_deck = get_object_or_404(UserDecks, id=self.kwargs['pk'], user=self.request.user)
+#         self.userdecks = UserDecks.objects.filter(user= self.request.user)
+#         return self.current_deck
+    
+#     def get_context_data(self, *args, **kwargs):
+#         # Call the base implementation first to get a context
+#         context = super().get_context_data(**kwargs)
+#         # Add in the publisher
+#         context['userdecks'] = self.userdecks
+#         context['form'] = AddCardForm(self.request.POST or None)
+#         return context
+
+#     def get_form_kwargs(self):
+#         kwargs = super(AddCardForm,self).get_form_kwargs()
+#         kwargs['user'] = self.request.user
+#         kwargs['deck'] = get_object_or_404(UserDecks, id=self.kwargs['pk'], user=self.request.user)
+#         return kwargs
     
     def form_valid(self,form):
         form.instance.user = self.request.user
         return super().form_valid(form)
+    
 
 class ForgeDecksIndex(UserSubscribedMixin, ListView):
     login_url = 'main_entrance:login'
@@ -127,6 +170,7 @@ def forge_action(request, pk):
         return render(request, 'forge/display_progress.html', context={'task_id':result.task_id})
     else: 
         print("THERE ARE NO CARDS TO BE MADE IN THIS DECK")
+        return render(request, 'forge/no_items_to_forge.html', context={'deck': UserDecks.objects.filter(id=pk).first()})
 
 @login_required
 @user_is_subscribed
@@ -161,6 +205,29 @@ def get_download(request, pk):
         except ClientError as e:
             logging.error(e)
             return render(request, 'main_entrance/index.html')
+
+@login_required
+@user_is_subscribed
+def add_card_form(request, pk):
+    current_deck = get_object_or_404(UserDecks, id=pk, user=request.user)
+    userdecks = UserDecks.objects.filter(user=request.user)
+    if request.method == 'POST':
+        form = AddCardForm(request.POST, deck=current_deck)
+        if form.is_valid():
+            incoming_card = form.save(commit = False)
+            incoming_card.deck = current_deck
+            incoming_card.user = request.user
+            incoming_card.save()
+            return redirect('forge:forge_add_card_form', pk = pk)
+    else:
+        form = AddCardForm()
+
+    context = {
+        'current_deck' : current_deck,
+        'userdecks' : userdecks,
+        'form' : form
+    }
+    return render(request, 'forge/add_card.html', context)
 
 
 

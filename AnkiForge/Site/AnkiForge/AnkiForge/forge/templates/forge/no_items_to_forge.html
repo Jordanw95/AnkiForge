@@ -1,0 +1,30 @@
+{% extends 'main_entrance/base.html' %}
+
+{% block content %}
+{% comment %} SIDE MENU {% endcomment %}
+<div class="row d-flex justify-content-center">
+    <div class="col-md-2">    
+        {% include 'forge/base.html' %}
+        </div>
+    </div>
+    {% comment %} All page content here {% endcomment %}
+    <div class = "col-md">    
+    
+        <div class= "decks-preview-text-box d-flex justify-content-center">
+            <div class="jumbotron justify-content-center text-center">
+                <h1> Something seems to have gone wrong...</h1>
+                <hr>
+                <p class="lead"> 
+                    There weren't any cards in the deck {{ deck.ankiforge_deck_name}} to forge. This may have been caused by 
+                    refreshing the browser. Please "My forged decks" where you should find the forged deck
+                    you are looking for. If not please get in touch through the Contact at the bottom.
+                </p>
+            </div>
+        </div>
+    
+        
+        
+        {% comment %} This is the end of content {% endcomment %}
+    </div>
+</div>
+{% endblock content %}

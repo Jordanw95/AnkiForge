@@ -4,14 +4,23 @@
 {% block content %}
 
 {% if user.is_authenticated %}
-
-    <div class='container'>
-        <div class='jumbotron'>
-            <h1>Welcome back {{ user.username|capfirst }}.</h1>
-            <hr class = "my-4">
-            <p class="lead"> This is a view that will be seen when you are signed in </p>
+<div class="row d-flex justify-content-center">
+    <div class="col-md-8">
+        <div class='decks-preview-text-box d-flex justify-content-center'>
+            <div class='jumbotron justify-content-center text-center'>
+                <h1 class="subscribecardtitle text-center">Welcome back {{ user.username|capfirst }}.</h1>
+                <hr>
+                <h4 class="sub-title">Thanks for being a part of AnkiForge!</h4>
+                <hr>
+                <p class="lead"> 
+                    To get an idea of how this works, please head to How it works in the navigation bar above. 
+                    If you'd like to create a deck or manage your decks, please navigate to Decks. To add cards, forge decks or get downloads of previously 
+                    forged decks, head over to Forge.  Finally, to cancel your subscription, click on account.
+                </p>
+            </div>
         </div>
     </div>
+</div>
 
 {% else %}
 <div class="splash-background">   
@@ -21,7 +30,7 @@
             <div class="jumbotron bg-transparent">
             <h1>AnkiForge</h1>
             <hr>
-            <p class="lead"> Make beautiful Anki cards for language learning from any device with a browser, with high quality synthesised speech and relevant images, effortlessly.</p>
+            <p class="lead"> Make beautiful Anki cards for learning languages, with high quality synthesised speech and images, effortlessly, from anywhere.</p>
             <hr>
             <div id='object'class="d-flex justify-content-end">
                 <p class="lead">Watch the video explanation</p>
@@ -129,23 +138,19 @@
                     </a>
                 </div>
             </div>
-            <div id="object"class="col-xl-4 d-flex justify-content-center subscribe-includes">
+            <div id="object"class="col-xl-4 d-flex justify-content-center subscribe-includes align-items-center">
                 <div class="card custom-card-one">
                     <div class="card-body">
                     <h3 class="card-title text-center">Subscription includes</h3>
                     <hr>
                     <div class="entry-content text-center lead">
                         <ul>
-                            <li id="card-list-object">Send quotes in either english or learnt language </li>
-                            <li id="card-list-object">Quotes translated using premium translation services</li>
-                            <li id="card-list-object">High quality synthesized natural speech (using Azure Neural Voices) added</li>
-                            <li id="card-list-object">Natural language processing on any quote to find key words</li>
-                            <li id="card-list-object">Image search using key words and relevant image added to card</li>
-                            <li id="card-list-object">Make over 400 cards (800 notes) like the examples, each month</li>
-                            <li id="card-list-object">Available in 7 languages (ES, FR, DE, IT, JA, CN-tw, CN-zh)</li>
-                            <li id="card-list-object">Desktop app that allows the the sending of quote from any app with keyboard shortcut</li>
-                            <li id="card-list-object">Send quotes on the go from mobile browser (plans to develop app)</li>
-                            <li id="card-list-object">Constant support and development to continue improving the service</li>
+                            <li id="card-list-object">Send quotes in English or learnt language and they will be translated using premium translation services</li>
+                            <li id="card-list-object">Synthesised, natural sounding speech added, using Azure Neural Voices</li>
+                            <li id="card-list-object">Natural language processing on the quote, to find and add relevant images to cards</li>
+                            <li id="card-list-object">Make over 400 cards (800 notes), each month, in Spanish, German, Italian, French, Japanese, Chinese (PRC) or Chinese (Taiwan)</li>
+                            <li id="card-list-object">Send quotes from desktop app easily with keyboard shortcut or on the go with your mobile browser (app coming soon!)</li>
+                            <li id="card-list-object">24/7 support and development based on your feedback to improve your experience</li>
                         </ul>
                     </div>
                 </div>
@@ -158,20 +163,23 @@
             <div id="card1of3"class="card text-center lead">
                 <div class="card-body">
                     <h5 class="card-title">Why did I make this?</h5>
-                    <p id="my-card-text"class="card-text">When I first started learning Spanish, I found Anki in-dispensible. It was a sure-fire way to commit vocab 
-                        to memory. However, I found the process of making good quality cards, from sentence mining, time consuming. So I made a python script to do it for me. 
-                    I found it so useful that I thought other people would want to use it too. Fast forward 6 months and here we are.  </p>
+                    <p id="my-card-text"class="card-text">
+                        When I first started learning Spanish, I found Anki indispensable. For me, it was the best way to learn a language. 
+                        However, I found the process of making good quality cards, from sentence mining, time consuming. So I found a way to automate it.  
+                    I found it so useful that I thought other people would want to use it too.  </p>
                 </div>
-                </div>
+            </div>
         </div>
         <div class="col-lg-4 d-flex">
             <div id="card2of3" class="card text-center lead">
                 <div class="card-body">
                     <h5 class="card-title">Why isn't this free?</h5>
-                    <p id="my-card-text" class="card-text">The primary reason - it costs me money. All of the APIs used for the service (image search, translation, azure nueral voices) are premium. 
-                        Sure, there are ways to do this for free - but I wanted somthing reliable.
-                        This combined with the hosting cost of the server, workers to make the media and cards, and databases to store everything, really add up. 
-                        Finally, I've put a lot of work into making this work and I want it continue to work! I also have lots of plans to improve it. Paying the subscription fee is what will make this happen.
+                    <p id="my-card-text" class="card-text">
+                        It costs me money. All of services used (image search, translation, Azure Nueral Voices) for AnkiForge are premium. 
+                        I wanted somthing reliable.
+                        This combined server costs, database costs and workers to make the media and cards, really add up. 
+                        Finally, I want this to continue functioning and improving, with your feedback! I have lots of plans to improve it. 
+                        Paying the subscription fee is what will make this happen.
                     </p>
                 </div>
                 </div>
@@ -180,11 +188,11 @@
             <div id="card3of3" class="card text-center lead">
                 <div class="card-body">
                     <h5 class="card-title">Is it perfect?</h5>
-                    <p id="my-card-text" class="card-text">Absolutely not. The service relies heavily on translation APIs. 
-                        This means it's only as good as the translation service it's using (Google Cloud Translation for now, I'm weighing up the benefits of deepL).
+                    <p id="my-card-text" class="card-text">
+                        Absolutely not. The service relies heavily on translation services. 
+                        This means it's only as good as the translation service it's using (Google Cloud Translation for now, but I plan to test out DeepL).
                         However, this doesn't mean it's not extremely useful. The real benefit of this service is that adding a word or phrase to your Anki deck (and ultimately your vocabulary)
-                        is now a split-second decision, that can be done from anywhere. There's also a host of tips to make it work best for you.
-
+                        is now a split-second decision, that can be done from anywhere. There's also tips to make it work best for you.
                     </p>
                 </div>
             </div>
@@ -206,9 +214,9 @@
                     </div>
                     <p class="card-text subscribecardtext">
                         All billing is handled through Stripe payment systems
-                        so you can be rest assured your payments will be handled safely. 
-                        Your payment wil be taken automatically one month starting from date of the first payment.
-                        You can cancel your membership at anytime.
+                        so you can be confident your payments will be handled safely. 
+                        Your payment wil be taken upon one month starting from date of the first payment.
+                        You can cancel your membership at any time.
                     </p>
                     <button class="card-text subscribenowbutton justify-content-center" href="#">
                         Sign up now
