@@ -7,10 +7,12 @@ AnkiForge/Site/AnkiForge/AnkiForge/env.env
 AnkiForge/Site/AnkiForge/AnkiForge/env.prod.env
 AnkiForge/env
 AnkiForge/Site/AnkiForge/AnkiForge/env.env
-AnkiForge/Site/AnkiForge/AnkiForge/forge/audio
-AnkiForge/Site/AnkiForge/AnkiForge/forge/images
 AnkiForge/AnkiForgeDesktop/node_modules
 AnkiForge/Site/AnkiForge/AnkiForge/static/
+AnkiForge/AnkiForgeDesktop/out
+AnkiForge/Site/AnkiForge/AnkiForge/forge/images/*
+AnkiForge/Site/AnkiForge/AnkiForge/forge/forgeddecks/*
+AnkiForge/Site/AnkiForge/AnkiForge/forge/audio/*
 *.DS_Store
 *.idea
 *.pyc

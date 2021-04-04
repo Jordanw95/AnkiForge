@@ -288,6 +288,9 @@ def convert_instance(model_name):
     elif model_name == 'PrettyStandardModel':
         model = PrettyStandardModel()
         return model
+    elif model_name == 'PrettyStandardModelTextBothSides':
+        model = PrettyStandardModelTextBothSides()
+        return model
     elif model_name =='PrettyStandardModelNoImage':
         model = PrettyStandardModelNoImage
         return model

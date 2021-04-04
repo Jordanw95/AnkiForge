@@ -2,19 +2,52 @@
 
 {% block content %}
 {% comment %} SIDE MENU {% endcomment %}
-<div class="row">
-    <div class="col-2">    
+<div class="row d-flex justify-content-center">
+    <div class="col-md-2">    
         {% include 'forge/base.html' %}
+        </div>
     </div>
-    <div class = "col">    
+    <div class = "col-md">    
         {% comment %} All page content here {% endcomment %}
     
-        <div class= "container">
-            <div class="jumbotron">
+        <div class= "decks-preview-text-box d-flex justify-content-center">
+            <div class="jumbotron justify-content-center text-center">
                 <h1> Welcome to Forge</h1>
                 <hr>
-                <p class="lead"> Here is where you will begin the process of forging decks. This will communicate with the database having all quotes
-                that you have recently sent, ready to be selected, combined with the appropriate media and forged into Anki decks.</p>
+                <p class="lead">
+                     Here is where you will begin the process of forging decks. Adding cards can be done from any device. 
+                     <span style="font-weight:400;"> But "Forge a deck" should be done from a computer. </span> 
+                     This will create ".apkg" files with the recently added cards within them. When you try and open them, this should trigger anki to 
+                     open and import them. If not, just open anki, click import files and import the recently downloaded deck.
+                     For more info please see the "How it works" in the navigation bar above.
+                </p>
+                <hr>
+                <br>
+                <br>
+                <div class="text-center common-questions-forge">
+                    <h2>Common questions </h2>
+                    <hr>
+                    <br>
+                    <h4>I've added a card, but I can't see it in my deck in "Forge a deck"?</h4>
+                    <br>
+                    <p class="lead">
+                        <span style="font-weight: 400;">TLDR; </span><span style="font-style: italic;">This should normally take around 15 seconds per card sent. But could take a little longer if there are a lot of people sending quotes at once.</span> 
+                        
+                    </p>
+                    <p class="lead">
+                        When you add a card, it is sent to our server. The server then needs to translate it, assign native and learnt languages.
+                        Then it has to run language processing to make sure we find relevant images, search for the image and get the synthesised speech.
+                        The image, audio and quote is then uploaded to a cloud ready to be made into a Anki card when you want.
+                    </p>
+                    <br>
+                    <br>
+                    <h4>I lost the download of a deck I forged? </h4>
+                    <br>
+                    <p class="lead">
+                        All of the decks ".apkg" files you forge will be available in "My forged decks". They are all time stamped and can
+                        be downloaded at anytime.
+                    </p>
+                </div>
             </div>
         </div>
     

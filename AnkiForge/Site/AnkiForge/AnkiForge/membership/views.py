@@ -10,42 +10,43 @@ from main_entrance.models import User
 import datetime
 from django.contrib.auth.decorators import login_required
 import celery
-# class MembershipView(LoginRequiredMixin, ListView):
+from AnkiForge.decorators import user_is_subscribed, user_has_points
+import time
 
+@login_required
+def user_profile_view(request):
+    user_membership = UserMembership.objects.filter(user=request.user).first()
+    try :
+        subscription = user_membership.subscription
+        # Format subscription period and minus leeway
+        subscription_date = datetime.datetime.utcfromtimestamp(subscription.active_until-(60*60*24*1.5)).strftime('%Y-%m-%d')
+    except Exception as e:
+        print(e)
+        subscription_date = "You aren't subscribed"
+    except Exception as e:
+        return JsonResponse({'error': str(e)})
+    user_credit = int((user_membership.user_points/300000)*100)
+    return render(request, 'membership/profileview.html', context={
+        'subscription_date' : subscription_date,
+        'user_credit' : user_credit
+    })
 
-#     login_url = 'main_entrance:login'
-#     # redirect_field_name= 'main_entrance/index.html'
+@login_required
+def out_of_points(request):
+    user_membership = UserMembership.objects.filter(user=request.user).first()
+    try :
+        subscription = user_membership.subscription
+        # Format subscription period and minus leeway
+        subscription_date = datetime.datetime.utcfromtimestamp(subscription.active_until-(60*60*24*1.5)).strftime('%Y-%m-%d')
+    except Exception as e:
+        print(e)
+        subscription_date = "You aren't subscribed"
+    except Exception as e:
+        return JsonResponse({'error': str(e)})
+    return render(request, 'membership/out_of_points.html', context={
+        'subscription_date' : subscription_date
+    })
 
-#     model = Membership
-#     template_name = 'membership/list.html'
-#     context_object_name = 'memberships'
-#     def get_user_membership(self, request):
-#         user_membership_qs = UserMembership.objects.filter(user=self.request.user)
-#         if user_membership_qs.exists():
-#             return user_membership_qs.first()
-#         return None
-
-#     def get_queryset(self):
-#         # Call all data from set fgrom model
-#         qs = {
-#             'all_memberships' : Membership.objects.all(),
-#             'paid_memberships' : Membership.objects.all().filter(membership_type__startswith='T'),
-#             'free_membership' : Membership.objects.all().filter(membership_type__startswith='PA').first(),
-#             'user_membership' : UserMembership.objects.filter(user=self.request.user).first()
-#         }
-#         return qs
-
-
-#     def get_context_data(self, *args, **kwargs):
-#         context = super().get_context_data(**kwargs)
-#         # current_membership = self.get_user_membership(self.request)
-#         # context['current_membership'] = str(current_membership.membership)
-#         return context
-
-class UserProfileView(LoginRequiredMixin, TemplateView):
-    login_url = 'main_entrance:login'
-    # redirect_field_name= 'main_entrance/index.html'
-    template_name = 'membership/profileview.html'
 
 
 class SubscribeView(LoginRequiredMixin, TemplateView):
@@ -143,6 +144,13 @@ def stripe_webhook(request):
                 stripe_customer_id=stripe_customer_id,
                 stripe_subscription_id=stripe_subscription_id,
             )
+        user_membership = UserMembership.objects.filter(user=user).first()
+        user_membership.user_points = 300000
+        user_membership.save()
+        subscription = Subscription.objects.filter(user_membership = user_membership).first()
+        subscription.active = True
+        subscription.active_until = time.time() + (60*1.5)
+        subscription.save()
         # Give points and activate subscription
     if event['type'] == 'invoice.paid':
         # this is also what we will receive when a monthly payment is made, so could hook renewal to this9
@@ -160,7 +168,7 @@ def stripe_webhook(request):
         user_membership = UserMembership.objects.get(user=user)
         current_points = user_membership.user_points
         print(current_points)
-        user_membership.user_points = int(current_points) + 300000
+        user_membership.user_points = 300000
         user_membership.save()
         user_subscription = Subscription.objects.get(user_membership=user_membership)
         user_subscription.active = True

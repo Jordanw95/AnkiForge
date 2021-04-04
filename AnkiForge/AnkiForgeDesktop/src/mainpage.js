@@ -290,7 +290,7 @@ function getUserPoints(){
             console.log(`BODY: ${chunk}`)
             userMembership = JSON.parse(chunk)
             var numberOfPoints = userMembership[0].user_points
-            userPoints.innerHTML = numberOfPoints + " Points remaining this month"
+            userPoints.innerHTML = ((numberOfPoints/300000)*100).toFixed(1) + "% Credit remaining this month"
             })
         });;
     request.on('finish', ()=>{

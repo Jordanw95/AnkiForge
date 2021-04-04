@@ -40,7 +40,7 @@ class UserDecks(models.Model):
         return random.randint(1000000000, 9999999999)
     
     def get_absolute_url(self):
-        return reverse("decks:decks_index")
+        return reverse("decks:decks_list")
     
 
     user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name = 'user_decks', on_delete=models.CASCADE)
@@ -52,7 +52,7 @@ class UserDecks(models.Model):
         max_length = 50
     )
     learnt_lang = models.CharField(
-        choices = LEARNT_LANG_CHOICES, default = 'es',
+        choices = LEARNT_LANG_CHOICES,
         max_length = 50
     )
     images_enabled = models.BooleanField(default= True)

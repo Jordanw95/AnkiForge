@@ -1,8 +1,6 @@
-
-<div class="list-group">
-    <a href="{% url 'membership:user_profile' %}" class="list-group-item list-group-item-action">My Account</a>
-    <a href="{% url 'membership:subscribe' %}" class="list-group-item list-group-item-action">Subscribe</a>
-    <a href="#" class="list-group-item list-group-item-action">Top Up</a>
-    <a href="#" class="list-group-item list-group-item-action">Transactions</a>
+<div class="list-group decks-base-nav">
+    {% url 'membership:user_profile' as url %}
+    <a href="{{ url }}" class="list-group-item list-group-item-action decks-base-nav-list-item {% if request.path == url %}deck-base-list-item-active{% endif %}">My Account</a>
+    {% url 'membership:subscribe' as url %}
+    <a href="{{ url }}" class="list-group-item list-group-item-action decks-base-nav-list-item {% if '/subscribe' in request.path %}deck-base-list-item-active{% endif %}">Subscription</a>
 </div>
-

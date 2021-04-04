@@ -1,0 +1,38 @@
+{% extends 'main_entrance/base.html' %}
+{% load crispy_forms_tags %}
+{% block content %}
+{% comment %} SIDE MENU {% endcomment %}
+<div class="row d-flex justify-content-center">
+    <div class="col-md-2">    
+        {% include 'forge/base.html' %}
+            <div class="forge-extended-side-nav">
+                <h4 class="forge-extended-nav-title"> Your decks </h4>
+                <div class = "list-group">
+                    {% for deck in userdecks %}
+                    <a class = "list-item forge-extended-side-nav-list-item" href = "{% url 'forge:forge_add_card_form' pk=deck.id %}">{{ deck.ankiforge_deck_name }}</a>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class = "col-md">    
+        {% comment %} All page content here {% endcomment %}
+    
+        <div class= "decks-preview-text-box d-flex justify-content-center">
+            <div class="jumbotron justify-content-center text-center">
+                <h1 class= "text-center"> Add a card to your deck</h1>
+                <hr>
+                <p class="lead text-center">
+                    Select a deck from "Your decks" menu on the left that you would like to add a card too. If you haven't made a 
+                    deck yet, please navigate to decks above an make one or head to how it works to get a step by step guide to getting 
+                    started.
+                </p>
+            </div>
+        </div>
+    
+        
+        
+        {% comment %} This is the end of content {% endcomment %}
+    </div>
+</div>
+{% endblock content %}

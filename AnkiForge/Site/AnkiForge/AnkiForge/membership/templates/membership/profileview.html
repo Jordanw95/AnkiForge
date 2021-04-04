@@ -2,14 +2,14 @@
 
 {% block content %}
 {% comment %} SIDE MENU {% endcomment %}
-<div class="row">
-    <div class="col-2">    
+<div class="row d-flex justify-content-center">
+    <div class="col-md-2">    
         {% include 'membership/base.html' %}
     </div>
-    <div class = "col">    
     {% comment %} All other content {% endcomment %}
-
-        <div class='container'>
+    
+    <div class = "col-md-5">    
+        <div class='decks-preview-text-box justify-content-center'>
             <div class = "jumbotron text-center">
             <h2>User Information</h2>
             <hr>
@@ -51,12 +51,21 @@
                     <hr>
                 <div class="row">
                     <div class="col-md-6">
-                        <h5>Membership: </h5>
+                        <h5>Subscribed until: </h5>
                     </div>
                     <div class="col-md-6">
-                        <p>{{ user.user_membership.membership.get_membership_type_display }}</p>
+                        <p>{{ subscription_date }}</p>
                     </div>
                 </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-5">
+        <div class='decks-preview-text-box justify-content-center'>
+            <div class = "jumbotron text-center">
+                <h2>Remaining credit</h2>
+                <hr>
+                <h1>{{ user_credit }}%</h1>
             </div>
         </div>
     </div>
