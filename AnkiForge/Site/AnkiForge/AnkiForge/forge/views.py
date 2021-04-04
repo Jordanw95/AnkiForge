@@ -208,6 +208,7 @@ def get_download(request, pk):
 
 @login_required
 @user_is_subscribed
+@user_has_points
 def add_card_form(request, pk):
     current_deck = get_object_or_404(UserDecks, id=pk, user=request.user)
     userdecks = UserDecks.objects.filter(user=request.user)

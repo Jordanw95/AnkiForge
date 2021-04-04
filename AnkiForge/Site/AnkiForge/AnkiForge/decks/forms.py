@@ -69,7 +69,7 @@ class CreateUserDeckForm(ModelForm):
             'ankiforge_deck_name': _('The name of the deck that will appear on this website.'),
             'anki_deck_name': _('If you want to add to a deck you already have, this MUST match the name of your deck as it appears in Anki.'),
             'native_lang' :_('We are working on making this available for native languages other than english.'),
-            'model_code' : _("This will decide how the cards made will appear. See  default models page to see previews of the layouts listed here. "),
+            'model_code' : _("This will decide how the cards made will appear. See default models page to see previews of the layouts listed here. "),
             # 'audio_enabled' :_('Add high quality audio files, in the learnt language, to cards made using this deck, formed using Google or Azure Text-To-Speech (the service used is chosen depending on which service offers the highest quality audio for that language). Disabling this option will save X points per card.'),
             # 'images_enabled' : _('Add relevant images to your cards, shown to help improve retention of words. Disabling this option will save X points per card'),
         }

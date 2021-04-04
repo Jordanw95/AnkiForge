@@ -5,6 +5,7 @@ from decks.forms import CreateUserDeckForm
 from decks.models import UserDecks, ForgedDecks
 from django.contrib.auth.decorators import login_required
 from django.urls import reverse
+from AnkiForge.mixins import LoggedInRedirectMixin, UserSubscribedMixin, UserSubscribedWithPointsMixin
 
 class DecksIndexView(LoginRequiredMixin, TemplateView):
     login_url = 'main_entrance:login'
@@ -19,7 +20,7 @@ class DecksPreviewStandardTBS(LoginRequiredMixin, TemplateView):
     template_name="decks/decks_preview_standard_TBS.html"
 
 
-class UserDecksCreateView(LoginRequiredMixin, CreateView):
+class UserDecksCreateView(UserSubscribedMixin, CreateView):
     login_url = 'main_entrance:login'
     
     template_name = "decks/new_deck_form.html"
@@ -31,7 +32,7 @@ class UserDecksCreateView(LoginRequiredMixin, CreateView):
         return super().form_valid(form)
     
 
-class UserDecksList(LoginRequiredMixin, ListView):
+class UserDecksList(UserSubscribedMixin, ListView):
 
     login_url = 'main_entrance:login'
     model = UserDecks

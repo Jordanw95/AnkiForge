@@ -34,10 +34,10 @@ def user_has_points(function):
     def wrap(request, *args, **kwargs):
         user= request.user
         user_membership = UserMembership.objects.get(user=user)
-        if user_membership.user_points >0:
+        if user_membership.user_points >1000:
             return function(request, *args, **kwargs)
         else:
-            redirect_url = reverse_lazy('main_entrance:index')
+            redirect_url = reverse_lazy('membership:out_of_points')
             return redirect(redirect_url)
     wrap.__doc__ = function.__doc__
     wrap.__name__ = function.__name__

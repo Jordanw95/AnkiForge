@@ -1,0 +1,30 @@
+{% extends 'main_entrance/base.html' %}
+
+{% block content %}
+{% comment %} SIDE MENU {% endcomment %}
+<div class="row d-flex justify-content-center">
+    <div class="col-md-2">    
+        {% include 'membership/base.html' %}
+    </div>
+    {% comment %} All other content {% endcomment %}
+    
+    <div class = "col-md">    
+        <div class='decks-preview-text-box justify-content-center'>
+            <div class = "jumbotron text-center">
+                <h1>Sorry, it looks like you are out of credit for this month</h1>
+                <hr>
+                <p class="lead">
+                    Your membership is due to renew on {{ subscription_date }}, at this point your accounts credit 
+                    will be recharged and you will be able to make cards again. If you really need to make more
+                    cards now, please get in touch using the contact button at the bottom and you can buy
+                    more credit for your account outside of the subscription. 
+                </p>
+            </div>
+        </div>
+    </div>
+
+{% endblock content %}
+    
+    
+    
+

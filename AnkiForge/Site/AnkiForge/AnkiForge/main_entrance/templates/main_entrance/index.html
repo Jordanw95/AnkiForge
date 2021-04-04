@@ -10,7 +10,11 @@
             <div class='jumbotron justify-content-center text-center'>
                 <h1 class="subscribecardtitle text-center">Welcome back {{ user.username|capfirst }}.</h1>
                 <hr>
-                <h4 class="sub-title">Thanks for being a part of AnkiForge!</h4>
+                {% if user.user_membership.subscription.active %}
+                    <h4 class="sub-title">Thanks for being a part of AnkiForge!</h4>
+                {% else %}
+                    <h4 class="sub-title">Your account isn't complete. You still need to <a href="{% url 'membership:subscribe' %}">subscribe</a> to get access! </h4>
+                {% endif %}
                 <hr>
                 <p class="lead"> 
                     To get an idea of how this works, please head to How it works in the navigation bar above. 

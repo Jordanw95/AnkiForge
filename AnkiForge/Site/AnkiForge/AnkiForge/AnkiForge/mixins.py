@@ -71,6 +71,9 @@ class UserSubscribedWithPointsMixin(RedirectMixin):
             user_subscription = Subscription.objects.get(user_membership = user_membership)
             if user_subscription.active and user_membership.user_points > 0 :
                 return True
+            elif user_subscription.active and user_membership.user_points < 1000:
+                self.redirect_url = reverse_lazy('membership:out_of_points')
+                return False
             else:
                 # this should redirect to a page that tells them they need to subscribe
                 self.redirect_url = reverse_lazy('membership:subscribe')

@@ -156,7 +156,7 @@ CELERY = {
 CELERY_BEAT_SCHEDULE = {
     'membership_check': {
         'task': 'membership_check',
-        'schedule': 3600,  # execute every minute
+        'schedule': 300,  # execute every minute
     }
 }
 # Password validation
