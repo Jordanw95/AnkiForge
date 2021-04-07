@@ -23,19 +23,19 @@ class MyLoginView(auth_views.LoginView):
 class MyLogoutView(auth_views.LogoutView):
     pass
 
-def mysignupview(request):
-    if request.method == 'POST':
-        form = MySignUpForm(request.POST)
-        if form.is_valid():
-            form.save()
-            username = form.cleaned_data.get('username')
-            raw_password = form.cleaned_data.get('password1')
-            user = authenticate(username=username, password=raw_password)
-            login(request, user)
-            return redirect('membership:subscribe')
-    else:
-        form = MySignUpForm()
-    return render(request, 'registration/signup.html', {'form': form})
+# def mysignupview(request):
+#     if request.method == 'POST':
+#         form = MySignUpForm(request.POST)
+#         if form.is_valid():
+#             form.save()
+#             username = form.cleaned_data.get('username')
+#             raw_password = form.cleaned_data.get('password1')
+#             user = authenticate(username=username, password=raw_password)
+#             login(request, user)
+#             return redirect('membership:subscribe')
+#     else:
+#         form = MySignUpForm()
+#     return render(request, 'registration/signup.html', {'form': form})
 
 class HowItWorksView(TemplateView):
     template_name = "main_entrance/howitworks.html"
