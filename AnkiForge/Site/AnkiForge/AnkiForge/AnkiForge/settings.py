@@ -129,16 +129,28 @@ EMAIL_HOST_PASSWORD = os.environ['EMAIL_HOST_PASSWORD']
 # }
 
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql',
+#         'NAME': 'postgres',
+#         'USER': 'postgres',
+#         'PASSWORD': 'postgres',
+#         'HOST': 'db',
+#         'PORT': 5432,
+#     }
+# }
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'postgres',
-        'USER': 'postgres',
-        'PASSWORD': 'postgres',
-        'HOST': 'db',
+        'NAME': os.environ['DB_NAME'],
+        'USER': os.environ['DB_USER'],
+        'PASSWORD': os.environ['DB_PASSWORD'],
+        'HOST': os.environ['DB_HOST'],
         'PORT': 5432,
     }
 }
+
 
 # Celery Settings
 

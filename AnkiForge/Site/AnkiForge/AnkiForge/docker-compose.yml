@@ -1,15 +1,6 @@
 version: "3.8"
    
 services:
-  db:
-    # restart: always
-    image: postgres:13.1
-    environment:
-      - POSTGRES_DB=postgres
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
-    volumes:
-      - postgres_data:/var/lib/postgresql/data/
   web:
     image: testinstall:staging
     entrypoint: /code/entrypoint.sh
@@ -19,8 +10,9 @@ services:
       - SecretKeys/env.env
     ports:
       - "8000:8000"
+    extra_hosts:
+      - "postgresql:159.89.90.25"
     depends_on:
-      - db
       - broker
   celery:
     image: testinstall:staging
@@ -30,8 +22,9 @@ services:
     volumes:
       - .:/code
     depends_on: 
-      - db
       - broker
+    extra_hosts:
+      - "postgresql:159.89.90.25"
   celery-beat:
     image: testinstall:staging
     restart: "always"
@@ -40,8 +33,9 @@ services:
     volumes:
       - .:/code
     depends_on:
-      - db
       - broker
+    extra_hosts:
+      - "postgresql:159.89.90.25"
   broker:
     image: redis:alpine
     env_file: *envfile
