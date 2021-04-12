@@ -15,7 +15,6 @@ ENV LANG=C.UTF-8
 RUN pip3 install -r ./requirements.txt
 RUN python3 -m nltk.downloader punkt
 RUN python3 -m nltk.downloader averaged_perceptron_tagger
-EXPOSE 8000
 
 # docker build --network=host -t testinstall2 .
 # docker tag testinstall2:latest testinstall:staging
