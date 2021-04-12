@@ -9,7 +9,7 @@ services:
     env_file: &envfile
       - SecretKeys/env.env
     ports:
-      - "8000:8000"
+      - "80:8000"
     extra_hosts:
       - "postgresql:159.89.90.25"
     depends_on:
@@ -39,12 +39,3 @@ services:
   broker:
     image: redis:alpine
     env_file: *envfile
-    ports: 
-      - 6379:6379
-
-
-
-
-
-volumes:
-  postgres_data:
