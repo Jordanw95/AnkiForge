@@ -39,3 +39,5 @@ services:
   broker:
     image: redis:alpine
     env_file: *envfile
+    expose:
+      - 6379

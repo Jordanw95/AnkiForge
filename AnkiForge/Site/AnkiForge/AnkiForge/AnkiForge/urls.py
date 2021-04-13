@@ -17,33 +17,8 @@ from django.contrib import admin
 from django.urls import path, include, re_path
 
 
-""" Url Views for initial start, pre DB entry"""
-# This checks if models have been migrated and data ha been input yet, and prevents
-# running of views that rely on model instances or relationships. This
-# allows Docker to build the container ready to run with no migrations
-# try :
-#     Membership.objects.filter(membership_type="PAYG").first()
-#     urlpatterns = [
-#         path('admin/', admin.site.urls),
-#         path('', include('main_entrance.urls')),
-#         path('membership/', include('membership.urls')),
-#         path('decks/', include('decks.urls')),
-#         path('forge/', include('forge.urls')),
-#     ]
-# except Exception as e :
-#     urlpatterns = [
-#         path('admin/', admin.site.urls),
-#     ] 
-
-# FIRST_LAUNCH = False
-
-# if FIRST_LAUNCH:
-#         urlpatterns = [
-#         path('admin/', admin.site.urls),
-#     ]
-# else:
 urlpatterns = [
-    path('admin/', admin.site.urls),
+    path('yous_shouldnt_know_this_part_phIO6yUdrBfuaECbausN_01252660590/', admin.site.urls),
     re_path(r'^celery-progress/', include('celery_progress.urls')),
     path('', include('main_entrance.urls')),
     path('membership/', include('membership.urls')),
