@@ -90,7 +90,7 @@ electronRemoteApp.on('will-quit', () => {
 function getUserDecks(){
     const request = net.request({ 
         method: 'GET', 
-        url: 'http://127.0.0.1:8000/forge/api/userdecks', 
+        url: 'https://ankiforge.com/forge/api/userdecks', 
         path: '/get', 
         redirect: 'follow'
     });
@@ -138,7 +138,7 @@ sendQuote.addEventListener('click', ()=>{
     console.log(body)
     const request = net.request({
         method: 'POST',
-        url : 'http://127.0.0.1:8000/forge/api/usercards/'
+        url : 'https://ankiforge.com/forge/api/usercards/'
     });
     request.on('response', (response) => { 
         console.log(`STATUS: ${response.statusCode}`); 
@@ -184,7 +184,7 @@ function sendFromKeyboard(incomingtext){
         console.log(body)
         const request = net.request({
             method: 'POST',
-            url : 'http://127.0.0.1:8000/forge/api/usercards/'
+            url : 'https://ankiforge.com/forge/api/usercards/'
         });
         request.on('response', (response) => { 
             console.log(`STATUS: ${response.statusCode}`); 
@@ -245,7 +245,7 @@ function getReadyForForge(){
     console.log(body)
     const request = net.request({ 
         method: 'GET', 
-        url: 'http://127.0.0.1:8000/forge/api/userreadyforforge', 
+        url: 'https://ankiforge.com/forge/api/userreadyforforge', 
         path: '/get', 
         redirect: 'follow'
     });
@@ -270,7 +270,7 @@ function getReadyForForge(){
 }
 
 forgeCount.addEventListener('click' , () => {
-    var ankiforgeUrl = "http://127.0.0.1:8000/"
+    var ankiforgeUrl = "https://ankiforge.com/"
     var deckUrl = ankiforgeUrl + "forge/forgedecks/" + selectedDeck.id + "/"
     require("electron").shell.openExternal(deckUrl);
 })
@@ -278,7 +278,7 @@ forgeCount.addEventListener('click' , () => {
 function getUserPoints(){
     const request = net.request({ 
         method: 'GET', 
-        url: 'http://127.0.0.1:8000/forge/api/userpoints', 
+        url: 'https://ankiforge.com/forge/api/userpoints', 
         path: '/get', 
         redirect: 'follow'
     });

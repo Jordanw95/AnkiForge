@@ -29,7 +29,7 @@ login.addEventListener('click', ()=>{
     var body = JSON.stringify({"username": loginInput.value, "password":loginPassword.value})
     const request = net.request({
         method: 'POST',
-        url : 'http://127.0.0.1:8000/api/auth/login'
+        url : 'https://ankiforge.com/api/auth/login'
     });
     request.on('response', (response) => { 
         console.log(`STATUS: ${response.statusCode}`); 
@@ -87,7 +87,7 @@ login.addEventListener('click', ()=>{
 function testAuthFunc(){
     const request = net.request({ 
         method: 'GET', 
-        url: 'http://127.0.0.1:8000/forge/api/userdecks', 
+        url: 'https://ankiforge.com/forge/api/userdecks', 
         path: '/get', 
         redirect: 'follow'
     });
