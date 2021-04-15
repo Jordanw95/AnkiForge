@@ -17,8 +17,6 @@ function createWindow () {
   // Load the index.html of the app. 
   win.loadFile('src/index.html') 
   
-  // Open the DevTools. 
-  win.webContents.openDevTools() 
 } 
   
 // This method will be called when Electron has finished 

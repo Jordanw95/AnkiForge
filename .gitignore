@@ -13,6 +13,7 @@ AnkiForge/AnkiForgeDesktop/out
 AnkiForge/Site/AnkiForge/AnkiForge/forge/images/*
 AnkiForge/Site/AnkiForge/AnkiForge/forge/forgeddecks/*
 AnkiForge/Site/AnkiForge/AnkiForge/forge/audio/*
+AnkiForge/AnkiForgeDesktop/node_modules
 *.DS_Store
 *.idea
 *.pyc
