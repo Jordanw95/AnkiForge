@@ -23,6 +23,28 @@ class MyLoginView(auth_views.LoginView):
 class MyLogoutView(auth_views.LogoutView):
     pass
 
+class MyResetPasswordView(auth_views.PasswordResetView):
+    template_name = "registration/my_password_reset_form.html"
+    email_template_name = 'registration/my_password_reset_email.html'
+    success_url = reverse_lazy('main_entrance:password_reset_done')
+    pass
+
+class MyResetPasswordSentView(auth_views.PasswordResetDoneView):
+    template_name = "registration/my_password_reset_done.html"
+    pass
+
+class MyResetConfirmView(auth_views.PasswordResetConfirmView):
+    template_name = "registration/my_password_reset_confirm.html"
+    success_url = reverse_lazy('main_entrance:password_reset_complete')
+    pass
+
+class MyResetPasswordCompleteView(auth_views.PasswordResetCompleteView):
+    template_name = "registration/my_password_reset_complete.html"
+    pass
+
+
+
+
 # def mysignupview(request):
 #     if request.method == 'POST':
 #         form = MySignUpForm(request.POST)

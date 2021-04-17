@@ -33,23 +33,6 @@ class ForgeIndexView(UserSubscribedMixin, TemplateView):
     redirect_url = reverse_lazy('main_entrance:index')
     
 
-# class IncomingCardCreateView(UserSubscribedWithPointsMixin, CreateView):
-#     template_name = "forge/add_incoming_card.html"
-#     redirect_url = reverse_lazy('main_entrance:index')
-#     form_class = AddIncomingCardForm
-#     model = IncomingCards
-
-#     # Passing the user to forms to adjust options
-#     def get_form_kwargs(self):
-#         kwargs = super(IncomingCardCreateView,self).get_form_kwargs()
-#         kwargs['user'] = self.request.user
-#         return kwargs
-    
-#     def form_valid(self,form):
-#         form.instance.user = self.request.user
-#         return super().form_valid(form)
-
-
 class AddCardIndex(UserSubscribedWithPointsMixin, ListView):
     login_url = 'main_entrance:login'
     # redirect_field_name= 'main_entrance/index.html'
@@ -61,31 +44,6 @@ class AddCardIndex(UserSubscribedWithPointsMixin, ListView):
     def get_queryset(self):
         return UserDecks.objects.filter(user= self.request.user)
 
-# class AddCardForm(UserSubscribedWithPointsMixin, ListView):
-#     template_name = "forge/add_card.html"
-#     redirect_url = reverse_lazy('main_entrance:index')
-#     context_object_name = "current_deck"
-
-#     # Passing the user to forms to adjust options
-
-#     def get_queryset(self):
-#         self.current_deck = get_object_or_404(UserDecks, id=self.kwargs['pk'], user=self.request.user)
-#         self.userdecks = UserDecks.objects.filter(user= self.request.user)
-#         return self.current_deck
-    
-#     def get_context_data(self, *args, **kwargs):
-#         # Call the base implementation first to get a context
-#         context = super().get_context_data(**kwargs)
-#         # Add in the publisher
-#         context['userdecks'] = self.userdecks
-#         context['form'] = AddCardForm(self.request.POST or None)
-#         return context
-
-#     def get_form_kwargs(self):
-#         kwargs = super(AddCardForm,self).get_form_kwargs()
-#         kwargs['user'] = self.request.user
-#         kwargs['deck'] = get_object_or_404(UserDecks, id=self.kwargs['pk'], user=self.request.user)
-#         return kwargs
     
     def form_valid(self,form):
         form.instance.user = self.request.user
@@ -151,6 +109,9 @@ class AlreadyForgedDecksList(UserSubscribedMixin, ListView):
         context['current_deck'] = self.deck_name
         return context
 
+class AnkiForgeDesktopDowload(UserSubscribedMixin, TemplateView):
+    template_name = "forge/ankiforge_desktop.html"
+    redirect_url = reverse_lazy('main_entrance:index')
 
 
 """****FUNCTION BASED VIEWS*****"""
@@ -267,27 +228,13 @@ class UserIncomingCardsAPIList(generics.ListCreateAPIView):
     def perform_create(self, serializer):
         serializer.save(user = self.request.user)
 
-        # This may be useful if problems with perform create
-    # def create(self, request, *args, **kwargs):
-    #     creating_user = IncomingCards(user=self.request.user)
-    #     serializer = self.serializer_class(creating_user, data = request.data)
-    #     if serializer.is_valid():
-    #         serializer.save()
-    #         return Response(serializer.data, status=status.HTTP_201_CREATED)
-    #     else : 
-    #         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
     def get_queryset(self):
         user = self.request.user
         return IncomingCards.objects.filter(user=user)
 
 
 
-
-# class TestingAllIncomingCards(generics.ListCreateAPIView):
-#     serializer_class = IncomingCardsSerializer
-
-#     def get_queryset(self):
-#         return IncomingCards.objects.all()
 
 """ USER CARDS READY FOR FORGING """
 

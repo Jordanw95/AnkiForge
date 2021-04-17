@@ -6,10 +6,9 @@ app_name = "forge"
 
 urlpatterns = [
     path('index/', views.ForgeIndexView.as_view(), name='forge_index'),
-    # path('add_card/', views.IncomingCardCreateView.as_view(), name = 'forge_add_incoming_card'),
+    path('download_ankiforge_desktop/', views.AnkiForgeDesktopDowload.as_view(), name='download_ankiforge_desktop'),
     path('add_card/', views.AddCardIndex.as_view(), name = 'forge_add_card_index'),
     path('add_card/<int:pk>/', views.add_card_form, name='forge_add_card_form'),
-    # path('forgedecks', views.ForgeDecks.as_view(), name = 'forge_forge_decks'),
     path('forgedecks/', views.ForgeDecksIndex.as_view(), name = 'forge_forge_decks_index'),
     path('forgedecks/<int:pk>/', views.ForgeDecksList.as_view(), name='forge_forge_decks'),
     path('forgedecks/<int:pk>/forge/', views.forge_action, name = 'forge_forge_action'),
@@ -21,6 +20,4 @@ urlpatterns = [
     path('api/usercards/', views.UserIncomingCardsAPIList.as_view(), name = 'api_user_cards'),
     path('api/userreadyforforge/', views.UserReadyForForgeAPIList.as_view(), name='api_readyforforge'),
     path('api/userpoints', views.UserPointsAPIList.as_view(), name = "api_userpoints")
-    # Testing APIs
-    # path('api/allincoming', views.TestingAllIncomingCards.as_view(), name='api_testing_allincoming'),
 ]
