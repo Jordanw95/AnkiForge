@@ -74,10 +74,6 @@ login.addEventListener('click', ()=>{
     request.end(); 
 }); 
 
-// testing.addEventListener('click', ()=>{
-//     var userKey= settings.getSync('UserAuth.userKey')
-//     console.log(userKey)
-// })
 
 // Skip straight to next page
 

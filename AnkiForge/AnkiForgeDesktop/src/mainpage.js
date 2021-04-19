@@ -10,7 +10,6 @@ const globalShortcut = electron.remote.globalShortcut
 // variables
 var userKey= settings.getSync('UserAuth.userKey')
 var headerKey = "Token " + userKey
-// var userDecks = [{"id":56,"user":2,"deck_id":5696702418,"ankiforge_deck_name":"Spanish Cram","anki_deck_name":"Spanish Cram","native_lang":"en","learnt_lang":"es","images_enabled":true,"audio_enabled":true,"model_code":2}];
 var selectedDeck = [{empty:"empty"}];
 var shortcutSetting = settings.getSync('General.shortcut')
 var userMembership = []
@@ -57,13 +56,13 @@ electronRemoteApp.whenReady().then(() => {
             console.log('Alt+X is pressed')
             var copiedText = clipboard.readText('selection')
             console.log(copiedText)
-            if (0 < copiedText.len < 255){
+            if (1 < copiedText.len < 255){
                 console.log(copiedText.len)
                 sendFromKeyboard(copiedText)
                 getReadyForForge()
                 getUserPoints()
             }else{
-                console.log("Length of string too long")
+                console.log("Length of string too long or too short. Max length of a string is 255 characters.")
             }
         }else{
             quoteFeedback.innerHTML = "You need to enable the shortcut below!";
