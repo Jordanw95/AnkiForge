@@ -7,5 +7,5 @@
     <a href="{{ url }}" class="list-group-item list-group-item-action decks-base-nav-list-item {% if '/forgedecks' in request.path %} deck-base-list-item-active{% endif %}">Forge a deck</a>
     {% url 'forge:forge_already_forged_index' as url %}
     <a href="{{ url }}" class="list-group-item list-group-item-action decks-base-nav-list-item {% if '/myforgeddecks' in request.path %} deck-base-list-item-active{% endif %}">My forged decks</a>
-    {% url 'forge:download_ankiforge_desktop%' as url' %}
-    <a href="{{ url }}" class="list-group-item list-group-item-action decks-base-nav-list-item {% if '/download_ankiforge_desktop/' in request.path %} deck-base-list-item-active{% endif %}">AnkiForge Desktop</a>
+    {% url 'forge:download_ankiforge_desktop' as url %}
+    <a href="{{ url }}" class="list-group-item list-group-item-action decks-base-nav-list-item {% if '/download_ankiforge_desktop/' in request.path %} deck-base-list-item-active{% endif %}">AnkiForge desktop</a>

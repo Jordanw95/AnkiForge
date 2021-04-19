@@ -222,9 +222,11 @@
                         Your payment wil be taken upon one month starting from date of the first payment.
                         You can cancel your membership at any time.
                     </p>
-                    <button class="card-text subscribenowbutton justify-content-center" href="#">
-                        Sign up now
-                    </button>
+                    <form action="{% url 'membership:email_notification' %}">
+                        <button class="card-text subscribenowbutton justify-content-center">
+                            Sign up now
+                        </button>
+                    </form>
                 </div>
             </div>
         </div>

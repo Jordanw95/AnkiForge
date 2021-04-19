@@ -41,6 +41,7 @@ class StripeSubscription(models.Model):
     stripe_subscription_id = models.CharField(max_length=255)
 
 
-
+class EmailList(models.Model):
+    email = models.EmailField(max_length = 254)
 
     

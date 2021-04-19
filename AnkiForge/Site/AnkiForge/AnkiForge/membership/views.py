@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect
-from django.views.generic import ListView, TemplateView
-from membership.models import UserMembership, Subscription, StripeSubscription
+from django.views.generic import ListView, TemplateView, FormView, CreateView
+from membership.models import UserMembership, Subscription, StripeSubscription, EmailList
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.decorators.csrf import csrf_exempt
 from django.http.response import JsonResponse, HttpResponse
@@ -12,6 +12,20 @@ from django.contrib.auth.decorators import login_required
 import celery
 from AnkiForge.decorators import user_is_subscribed, user_has_points
 import time
+from django.urls import reverse_lazy
+
+
+class EmailListFormView(CreateView):
+    template_name = 'membership/email_list_form.html'
+    model = EmailList
+    fields = ['email']
+    success_url = reverse_lazy('membership:email_list_success')
+
+
+class EmailListSuccess(TemplateView):
+    template_name = 'membership/email_list_success.html'
+
+
 
 @login_required
 def user_profile_view(request):

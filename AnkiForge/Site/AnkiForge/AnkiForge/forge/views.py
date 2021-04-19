@@ -27,7 +27,6 @@ from AnkiForge.decorators import user_is_subscribed, user_has_points
 
 """****CLASS BASED VIEWS****"""
 
-
 class ForgeIndexView(UserSubscribedMixin, TemplateView):
     template_name = "forge/forge_index.html"
     redirect_url = reverse_lazy('main_entrance:index')

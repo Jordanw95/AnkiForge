@@ -1,0 +1,26 @@
+{% extends 'main_entrance/base.html' %}
+{% load crispy_forms_tags %}
+{% block content %}
+<div class="row overall-site-background justify-content-center">
+    <div class='container main-object-container text-center'>
+            <div class='jumbotron'>
+        
+            <h2 class="text-center">AnkiForge isn't quite ready yet...</h2>
+            <br>
+            <p class='lead'>
+                 It should be up and ready for public use early march. If you'd like an email 
+                 notification once it's ready to go, please enter your email below.
+                </p>
+            <hr>
+            <form method="post">
+                {% csrf_token %}
+                {{ form|crispy }}
+                <div class="lead d-flex justify-content-center" >
+                    <button type="submit" class="btn btn-success" value="Notify my">Notify me</button>
+                </div>
+            </form>
+            </div>
+    </div>
+</div>
+
+{% endblock  %}
