@@ -170,16 +170,6 @@ def forge_deck(self, deck, user):
 
 
 
-# @shared_task(bind=True, name='forge_deck')
-# def forge_deck(self, seconds, pk):
-#     progress_recorder = ProgressRecorder(self)
-#     result = 0
-#     for i in range(seconds):
-#         time.sleep(1)
-#         result += i
-#         progress_recorder.set_progress(i + 1, 100)
-#     return pk
-
 def assign_language(cards):
     # handed a iterable query set
     processed_cards = []
@@ -217,12 +207,12 @@ def make_deck(cards, progress_recorder, progress, max_progress):
             fields=model_instance.fields,
             templates=model_instance.templates)
         for card in cards:
-            # (filepath, filename)
-            # [[x['input'], x['translatedText']] for x in results]
-            # first one is english native second is learnt
             if card['deck__audio_enabled']:
+                # Check if media local, if not download
+                download_missing_media(card['archived_card__aws_audio_file_path'], card['archived_card__local_audio_file_path'])
                 deck_media_files.append(card['archived_card__local_audio_file_path'])
             if card['deck__images_enabled']:
+                download_missing_media(card['archived_card__aws_image_file_path'], card['archived_card__local_image_file_path'])
                 deck_media_files.append(card['archived_card__local_image_file_path'])
             image_filename = card['archived_card__universal_image_filename']
             audio_filename = card['archived_card__universal_audio_filename']
@@ -362,3 +352,17 @@ def get_download_link(cards, s3):
         logging.error(e)
     
     return cards
+
+def download_missing_media(media_aws_file_path, media_local_file_path):
+    if os.path.exists(media_local_file_path):
+        pass
+    else:
+        print("MEDIA NOT FOUND LOCALLY, DOWNLOADING FROM S3")
+        s3 = boto3.client('s3',
+            aws_access_key_id=os.environ['AWS_ACCESS_KEY_ID'],
+            aws_secret_access_key=os.environ['AWS_SECRET_ACCESS_KEY'],
+            config=Config(
+                signature_version='s3v4',
+                region_name = 'us-east-2'
+                ))
+        s3.download_file(os.environ['AWS_STORAGE_BUCKET_NAME'], media_aws_file_path, media_local_file_path)
