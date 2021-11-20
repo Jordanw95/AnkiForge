@@ -7,7 +7,7 @@
  
  ### Intent
 
-I made this site my first real long term project. I had the intent to host it myself and allow others to use it. Due to this, it is built with authentication, stripe payment systems and subscriptions etc. However, after a long time working on and finally deploying it, I got a job. I no longer have time to maintain the site and commit to running it for customers. 
+I made this site my first real long term project and as a learning exercise. I had the intent to host it myself and allow others to use it. Due to this, it is built with authentication, stripe payment systems and subscriptions etc. However, after a long time working on and finally deploying it, other things got in the way and I no longer have the time to maintain it in a way that customers could use it.
 
 ## Tech
 The website and desktop app is using the following tech: Django, Django Rest Framework, PostgreSQL, Celery, Docker, Redis, Electron, Stripe Payment Systems, Bootstrap, AWS S3.
