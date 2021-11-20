@@ -5,9 +5,9 @@
  #### Video demonstration of AnkiForge
  https://www.youtube.com/watch?v=nTL_rWi2_Ic&ab_channel=AnkiForge.
  
- ## Intent
+ ### Intent
 
-I made this site my first real long term project. I had the intent to host it myself and allow others to use it. Due to this, it is built with authentication, stripe payment systems and subscriptions etc. However, after 9 months of working on it and just after finishing and deploying it, I got a job. I no longer have time to maintain the site and commit to running it for customers. So after leaving it untouched for four months, I'm going to make it open source.
+I made this site my first real long term project. I had the intent to host it myself and allow others to use it. Due to this, it is built with authentication, stripe payment systems and subscriptions etc. However, after a long time working on and finally deploying it, I got a job. I no longer have time to maintain the site and commit to running it for customers. 
 
 ## Tech
 The website and desktop app is using the following tech: Django, Django Rest Framework, PostgreSQL, Celery, Docker, Redis, Electron, Stripe Payment Systems, Bootstrap, AWS S3.
