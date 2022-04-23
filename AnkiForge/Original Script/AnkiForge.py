@@ -13,7 +13,11 @@ import shutil
 from io import BytesIO
 import string
 
-# Original script initial development. Used only for personal computer.
+
+# NOTE
+
+
+# Original quick, hacky script from initial development. Used only for personal computer and not used in final webapp.
 
 # Google API Credntials JSON
 os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = "/Users/jordanwaters/Desktop/Python/Anki/KindleToAnki/KindleToAnki/My First Project-631ac9d558c9.json"
